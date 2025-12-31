@@ -6,7 +6,7 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(64) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 DROP TABLE IF EXISTS problems;
 CREATE TABLE problems(
@@ -27,8 +27,10 @@ CREATE TABLE submissions(
     user_id INT NOT NULL,
     language VARCHAR(32) NOT NULL,
     code_path VARCHAR(512) NOT NULL,
-    status VARCHAR(32) DEFAULT 'Pending...',
+    status VARCHAR(32) DEFAULT 'Pending',
     detail TEXT,
     submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    time_cost INT,
+    mem_cost INT,
     INDEX(user_id,problem_id)
 )

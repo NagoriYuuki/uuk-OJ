@@ -8,7 +8,7 @@ using i64 = long long;
 signed main(void)
 {
     auto &db = DB::instance();
-    auto con = db.getConnection();
+    auto &con = db.getConnection();
 
     crow::SimpleApp app;
     CROW_ROUTE(app, "/")([]()
