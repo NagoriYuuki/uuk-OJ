@@ -1,4 +1,5 @@
 #include "base_entity.hpp"
+
 #include <string>
 
 class User : public Entity

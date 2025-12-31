@@ -990,4 +990,5 @@ CMakeFiles/uukOJ.dir/src/main.cpp.o: \
  /usr/local/include/mariadb/conncpp/Types.hpp \
  /usr/local/include/mariadb/conncpp/SQLString.hpp \
  /usr/local/include/mariadb/conncpp/Exception.hpp \
- /usr/local/include/mariadb/conncpp/jdbccompat.hpp
+ /usr/local/include/mariadb/conncpp/jdbccompat.hpp \
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/include/db.hpp

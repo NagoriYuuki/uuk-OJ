@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/local/include/mariadb
+CXX_INCLUDES = -I/usr/local/include/mariadb -I/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/include -I/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/entities -I/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper
 
 CXX_FLAGS = -std=gnu++23
 

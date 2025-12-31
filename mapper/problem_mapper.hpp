@@ -2,6 +2,7 @@
 #include "base_mapper.hpp"
 #include "../entities/problem.hpp"
 #include "../include/db.hpp"
+
 #include <memory>
 
 class ProblemMapper : public BaseMapper<Problem>
@@ -68,6 +69,35 @@ public:
         {
             std::cerr << "SQL Error in remove Problem: " << e.what() << std::endl;
             return false;
+        }
+    }
+
+    std::optional<Problem> findById(const int id) override
+    {
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id,title,time_limit,mem_limit,description,sample_input,sample_output,created_time,tc_path FROM problems WHERE id=?"));
+            stmtPtr->setInt(1, id);
+            auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            if (!resPtr->next())
+                return std::nullopt;
+            Problem problem(
+                resPtr->getInt("id"),
+                std::string(resPtr->getString("title").c_str()),
+                resPtr->getInt("time_limit"),
+                resPtr->getInt("mem_limit"),
+                std::string(resPtr->getString("description").c_str()),
+                std::string(resPtr->getString("sample_input").c_str()),
+                std::string(resPtr->getString("sample_output").c_str()),
+                std::string(resPtr->getString("created_time").c_str()),
+                std::string(resPtr->getString("tc_path").c_str()));
+            return problem;
+        }
+        catch (sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in findById Problem: " << e.what() << std::endl;
+            return std::nullopt;
         }
     }
 };

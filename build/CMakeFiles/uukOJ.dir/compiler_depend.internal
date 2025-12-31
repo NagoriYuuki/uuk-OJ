@@ -3,6 +3,7 @@
 
 CMakeFiles/uukOJ.dir/src/main.cpp.o
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/main.cpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/include/db.hpp
  /usr/include/alloca.h
  /usr/include/arpa/inet.h
  /usr/include/asio.hpp

@@ -2,6 +2,7 @@
 #include "base_mapper.hpp"
 #include "../entities/user.hpp"
 #include "../include/db.hpp"
+
 #include <memory>
 #include <string>
 #include <optional>
@@ -77,10 +78,10 @@ public:
                 return std::nullopt;
             }
 
-            User user;
-            user.id = rs->getInt("id");
-            user.username = rs->getString("username");
-            user.password_hash = rs->getString("password_hash");
+            User user(
+                rs->getInt("id"),
+                std::string(rs->getString("username").c_str()),
+                std::string(rs->getString("password_hash").c_str()));
             return user;
         }
         catch (sql::SQLException &e)

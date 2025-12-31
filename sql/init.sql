@@ -26,7 +26,7 @@ CREATE TABLE submissions(
     problem_id INT NOT NULL,
     user_id INT NOT NULL,
     language VARCHAR(32) NOT NULL,
-    code_path VARCHAR(512) NOT NULL,
+    code TEXT,
     status VARCHAR(32) DEFAULT 'Pending',
     detail TEXT,
     submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

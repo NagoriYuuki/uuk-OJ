@@ -2,6 +2,7 @@
 #include "base_mapper.hpp"
 #include "../entities/submission.hpp"
 #include "../include/db.hpp"
+
 #include <memory>
 
 class SubmissionMapper : public BaseMapper<Submission>
@@ -72,6 +73,38 @@ public:
         {
             std::cerr << "SQL Error in remove Submission: " << e.what() << std::endl;
             return false;
+        }
+    }
+
+    std::optional<Submission> findById(const int id) override
+    {
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id, problem_id, user_id, language, code_path, status, detail, submit_time, time_cost, mem_cost FROM submissions WHERE id = ?"));
+            stmtPtr->setInt(1, id);
+            auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            if (resPtr->next())
+            {
+                Submission submission(
+                    resPtr->getInt64("id"),
+                    resPtr->getInt("problem_id"),
+                    resPtr->getInt("user_id"),
+                    std::string(resPtr->getString("language").c_str()),
+                    std::string(resPtr->getString("code_path").c_str()),
+                    std::string(resPtr->getString("status").c_str()),
+                    std::string(resPtr->getString("detail").c_str()),
+                    std::string(resPtr->getString("submit_time").c_str()),
+                    resPtr->getInt("time_cost"),
+                    resPtr->getInt("mem_cost"));
+                return submission;
+            }
+            return std::nullopt;
+        }
+        catch (sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in findById Submission: " << e.what() << std::endl;
+            return std::nullopt;
         }
     }
 };
