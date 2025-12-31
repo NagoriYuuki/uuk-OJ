@@ -69,28 +69,28 @@ include CMakeFiles/uukOJ.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/uukOJ.dir/flags.make
 
-CMakeFiles/uukOJ.dir/main.cpp.o: CMakeFiles/uukOJ.dir/flags.make
-CMakeFiles/uukOJ.dir/main.cpp.o: /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/main.cpp
-CMakeFiles/uukOJ.dir/main.cpp.o: CMakeFiles/uukOJ.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/uukOJ.dir/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/uukOJ.dir/main.cpp.o -MF CMakeFiles/uukOJ.dir/main.cpp.o.d -o CMakeFiles/uukOJ.dir/main.cpp.o -c /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/main.cpp
+CMakeFiles/uukOJ.dir/src/main.cpp.o: CMakeFiles/uukOJ.dir/flags.make
+CMakeFiles/uukOJ.dir/src/main.cpp.o: /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/main.cpp
+CMakeFiles/uukOJ.dir/src/main.cpp.o: CMakeFiles/uukOJ.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/uukOJ.dir/src/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/uukOJ.dir/src/main.cpp.o -MF CMakeFiles/uukOJ.dir/src/main.cpp.o.d -o CMakeFiles/uukOJ.dir/src/main.cpp.o -c /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/main.cpp
 
-CMakeFiles/uukOJ.dir/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/uukOJ.dir/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/main.cpp > CMakeFiles/uukOJ.dir/main.cpp.i
+CMakeFiles/uukOJ.dir/src/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/uukOJ.dir/src/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/main.cpp > CMakeFiles/uukOJ.dir/src/main.cpp.i
 
-CMakeFiles/uukOJ.dir/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/uukOJ.dir/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/main.cpp -o CMakeFiles/uukOJ.dir/main.cpp.s
+CMakeFiles/uukOJ.dir/src/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/uukOJ.dir/src/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/main.cpp -o CMakeFiles/uukOJ.dir/src/main.cpp.s
 
 # Object files for target uukOJ
 uukOJ_OBJECTS = \
-"CMakeFiles/uukOJ.dir/main.cpp.o"
+"CMakeFiles/uukOJ.dir/src/main.cpp.o"
 
 # External object files for target uukOJ
 uukOJ_EXTERNAL_OBJECTS =
 
-uukOJ: CMakeFiles/uukOJ.dir/main.cpp.o
+uukOJ: CMakeFiles/uukOJ.dir/src/main.cpp.o
 uukOJ: CMakeFiles/uukOJ.dir/build.make
 uukOJ: CMakeFiles/uukOJ.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable uukOJ"

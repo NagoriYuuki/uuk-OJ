@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/main.cpp" "CMakeFiles/uukOJ.dir/main.cpp.o" "gcc" "CMakeFiles/uukOJ.dir/main.cpp.o.d"
+  "/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/main.cpp" "CMakeFiles/uukOJ.dir/src/main.cpp.o" "gcc" "CMakeFiles/uukOJ.dir/src/main.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

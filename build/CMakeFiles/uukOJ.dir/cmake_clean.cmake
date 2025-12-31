@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/uukOJ.dir/main.cpp.o"
-  "CMakeFiles/uukOJ.dir/main.cpp.o.d"
+  "CMakeFiles/uukOJ.dir/src/main.cpp.o"
+  "CMakeFiles/uukOJ.dir/src/main.cpp.o.d"
   "uukOJ"
   "uukOJ.pdb"
 )

@@ -1,11 +1,14 @@
 #include <crow.h>
+#include <bits/stdc++.h>
+#include <mariadb/conncpp.hpp>
+#include "db.hpp"
 
 using i64 = long long;
 
 signed main(void)
 {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(0);
+    auto &db = DB::instance();
+    auto con = db.getConnection();
 
     crow::SimpleApp app;
     CROW_ROUTE(app, "/")([]()
