@@ -12,7 +12,7 @@ public:
     int problem_id;
     int user_id;
     std::string language;
-    std::string code_path;
+    std::string code;
     std::string status;
     std::string detail;
     std::string submit_time;
@@ -23,7 +23,7 @@ public:
                const int problem_id,
                const int user_id,
                const std::string &language,
-               const std::string &code_path,
+               const std::string &code,
                const std::string &status,
                const std::string &detail,
                const std::string &submit_time,
@@ -33,7 +33,7 @@ public:
           problem_id(problem_id),
           user_id(user_id),
           language(language),
-          code_path(code_path),
+          code(code),
           status(status),
           detail(detail),
           submit_time(submit_time),

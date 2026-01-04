@@ -45,4 +45,6 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/uukOJ.dir/DependInfo.cmake"
+  "CMakeFiles/crud_smoke.dir/DependInfo.cmake"
+  "CMakeFiles/crudtest.dir/DependInfo.cmake"
   )

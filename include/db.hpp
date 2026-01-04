@@ -1,3 +1,4 @@
+#pragma once
 #include <mariadb/conncpp.hpp>
 #include <iostream>
 #include <mutex>

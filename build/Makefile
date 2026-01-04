@@ -129,6 +129,80 @@ uukOJ/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uukOJ.dir/build.make CMakeFiles/uukOJ.dir/build
 .PHONY : uukOJ/fast
 
+#=============================================================================
+# Target rules for targets named crud_smoke
+
+# Build rule for target.
+crud_smoke: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 crud_smoke
+.PHONY : crud_smoke
+
+# fast build rule for target.
+crud_smoke/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/build
+.PHONY : crud_smoke/fast
+
+#=============================================================================
+# Target rules for targets named crudtest
+
+# Build rule for target.
+crudtest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 crudtest
+.PHONY : crudtest
+
+# fast build rule for target.
+crudtest/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/build
+.PHONY : crudtest/fast
+
+src/crud_smoke.o: src/crud_smoke.cpp.o
+.PHONY : src/crud_smoke.o
+
+# target to build an object file
+src/crud_smoke.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/src/crud_smoke.cpp.o
+.PHONY : src/crud_smoke.cpp.o
+
+src/crud_smoke.i: src/crud_smoke.cpp.i
+.PHONY : src/crud_smoke.i
+
+# target to preprocess a source file
+src/crud_smoke.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/src/crud_smoke.cpp.i
+.PHONY : src/crud_smoke.cpp.i
+
+src/crud_smoke.s: src/crud_smoke.cpp.s
+.PHONY : src/crud_smoke.s
+
+# target to generate assembly for a file
+src/crud_smoke.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/src/crud_smoke.cpp.s
+.PHONY : src/crud_smoke.cpp.s
+
+src/crudtest.o: src/crudtest.cpp.o
+.PHONY : src/crudtest.o
+
+# target to build an object file
+src/crudtest.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/src/crudtest.cpp.o
+.PHONY : src/crudtest.cpp.o
+
+src/crudtest.i: src/crudtest.cpp.i
+.PHONY : src/crudtest.i
+
+# target to preprocess a source file
+src/crudtest.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/src/crudtest.cpp.i
+.PHONY : src/crudtest.cpp.i
+
+src/crudtest.s: src/crudtest.cpp.s
+.PHONY : src/crudtest.s
+
+# target to generate assembly for a file
+src/crudtest.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/src/crudtest.cpp.s
+.PHONY : src/crudtest.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -161,7 +235,15 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... crud_smoke"
+	@echo "... crudtest"
 	@echo "... uukOJ"
+	@echo "... src/crud_smoke.o"
+	@echo "... src/crud_smoke.i"
+	@echo "... src/crud_smoke.s"
+	@echo "... src/crudtest.o"
+	@echo "... src/crudtest.i"
+	@echo "... src/crudtest.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

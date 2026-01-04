@@ -64,6 +64,8 @@ CMAKE_BINARY_DIR = /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build
 
 # The main recursive "all" target.
 all: CMakeFiles/uukOJ.dir/all
+all: CMakeFiles/crud_smoke.dir/all
+all: CMakeFiles/crudtest.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,6 +74,8 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/uukOJ.dir/clean
+clean: CMakeFiles/crud_smoke.dir/clean
+clean: CMakeFiles/crudtest.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -81,7 +85,7 @@ clean: CMakeFiles/uukOJ.dir/clean
 CMakeFiles/uukOJ.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uukOJ.dir/build.make CMakeFiles/uukOJ.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uukOJ.dir/build.make CMakeFiles/uukOJ.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=1,2 "Built target uukOJ"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=5,6 "Built target uukOJ"
 .PHONY : CMakeFiles/uukOJ.dir/all
 
 # Build rule for subdir invocation for target.
@@ -99,6 +103,58 @@ uukOJ: CMakeFiles/uukOJ.dir/rule
 CMakeFiles/uukOJ.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uukOJ.dir/build.make CMakeFiles/uukOJ.dir/clean
 .PHONY : CMakeFiles/uukOJ.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/crud_smoke.dir
+
+# All Build rule for target.
+CMakeFiles/crud_smoke.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=1,2 "Built target crud_smoke"
+.PHONY : CMakeFiles/crud_smoke.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/crud_smoke.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/crud_smoke.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 0
+.PHONY : CMakeFiles/crud_smoke.dir/rule
+
+# Convenience name for target.
+crud_smoke: CMakeFiles/crud_smoke.dir/rule
+.PHONY : crud_smoke
+
+# clean rule for target.
+CMakeFiles/crud_smoke.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/clean
+.PHONY : CMakeFiles/crud_smoke.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/crudtest.dir
+
+# All Build rule for target.
+CMakeFiles/crudtest.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=3,4 "Built target crudtest"
+.PHONY : CMakeFiles/crudtest.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/crudtest.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/crudtest.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 0
+.PHONY : CMakeFiles/crudtest.dir/rule
+
+# Convenience name for target.
+crudtest: CMakeFiles/crudtest.dir/rule
+.PHONY : crudtest
+
+# clean rule for target.
+CMakeFiles/crudtest.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/clean
+.PHONY : CMakeFiles/crudtest.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

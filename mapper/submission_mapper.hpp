@@ -15,16 +15,15 @@ public:
         try
         {
             auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "INSERT INTO submissions (problem_id, user_id, language, code_path, status, detail, submit_time, time_cost, mem_cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+                "INSERT INTO submissions (problem_id, user_id, language, code, status, detail, time_cost, mem_cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"));
             stmtPtr->setInt(1, submission.problem_id);
             stmtPtr->setInt(2, submission.user_id);
             stmtPtr->setString(3, submission.language);
-            stmtPtr->setString(4, submission.code_path);
+            stmtPtr->setString(4, submission.code);
             stmtPtr->setString(5, submission.status);
             stmtPtr->setString(6, submission.detail);
-            stmtPtr->setString(7, submission.submit_time);
-            stmtPtr->setInt(8, submission.time_cost);
-            stmtPtr->setInt(9, submission.mem_cost);
+            stmtPtr->setInt(7, submission.time_cost);
+            stmtPtr->setInt(8, submission.mem_cost);
             stmtPtr->executeUpdate();
             return true;
         }
@@ -39,17 +38,16 @@ public:
         try
         {
             auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "UPDATE submissions SET problem_id = ?, user_id = ?, language = ?, code_path = ?, status = ?, detail = ?, submit_time = ?, time_cost = ?, mem_cost = ? WHERE id = ?"));
+                "UPDATE submissions SET problem_id = ?, user_id = ?, language = ?, code = ?, status = ?, detail = ?, time_cost = ?, mem_cost = ? WHERE id = ?"));
             stmPtr->setInt(1, submission.problem_id);
             stmPtr->setInt(2, submission.user_id);
             stmPtr->setString(3, submission.language);
-            stmPtr->setString(4, submission.code_path);
+            stmPtr->setString(4, submission.code);
             stmPtr->setString(5, submission.status);
             stmPtr->setString(6, submission.detail);
-            stmPtr->setString(7, submission.submit_time);
-            stmPtr->setInt(8, submission.time_cost);
-            stmPtr->setInt(9, submission.mem_cost);
-            stmPtr->setInt(10, submission.id);
+            stmPtr->setInt(7, submission.time_cost);
+            stmPtr->setInt(8, submission.mem_cost);
+            stmPtr->setInt(9, submission.id);
             stmPtr->executeUpdate();
             return true;
         }
@@ -81,7 +79,7 @@ public:
         try
         {
             auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "SELECT id, problem_id, user_id, language, code_path, status, detail, submit_time, time_cost, mem_cost FROM submissions WHERE id = ?"));
+                "SELECT id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost FROM submissions WHERE id = ?"));
             stmtPtr->setInt(1, id);
             auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
             if (resPtr->next())
@@ -91,7 +89,7 @@ public:
                     resPtr->getInt("problem_id"),
                     resPtr->getInt("user_id"),
                     std::string(resPtr->getString("language").c_str()),
-                    std::string(resPtr->getString("code_path").c_str()),
+                    std::string(resPtr->getString("code").c_str()),
                     std::string(resPtr->getString("status").c_str()),
                     std::string(resPtr->getString("detail").c_str()),
                     std::string(resPtr->getString("submit_time").c_str()),

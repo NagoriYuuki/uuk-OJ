@@ -14,7 +14,7 @@ CREATE TABLE problems(
     title VARCHAR(255) NOT NULL,
     time_limit INT DEFAULT 1000,
     mem_limit INT DEFAULT 65536,
-    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     description TEXT,
     sample_input TEXT,
     sample_output TEXT,
