@@ -24,6 +24,7 @@ set(UUKOJ_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/entities
     ${CMAKE_CURRENT_SOURCE_DIR}/mapper
+    ${CMAKE_CURRENT_SOURCE_DIR}/Services
 )
 
 target_include_directories(uukOJ PRIVATE ${UUKOJ_INCLUDE_DIRS})
