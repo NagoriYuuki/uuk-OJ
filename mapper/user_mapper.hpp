@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <optional>
+#include <vector>
 
 class UserMapper : public BaseMapper<User>
 {
@@ -89,5 +90,32 @@ public:
             std::cerr << "SQL Error in findById User: " << e.what() << std::endl;
             return std::nullopt;
         }
+    }
+
+    std::optional<std::vector<User>> listAll(int limit = 50, int offset = 0)
+    {
+        std::vector<User> vec;
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id, username, password_hash FROM users LIMIT ? OFFSET ?"));
+            stmtPtr->setInt(1, limit);
+            stmtPtr->setInt(2, offset);
+            auto res = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            while (res->next())
+            {
+                User user(
+                    res->getInt("id"),
+                    std::string(res->getString("username").c_str()),
+                    std::string(res->getString("password_hash").c_str()));
+                vec.push_back(user);
+            }
+            return vec;
+        }
+        catch (sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in listAll User: " << e.what() << std::endl;
+        }
+        return std::nullopt;
     }
 };

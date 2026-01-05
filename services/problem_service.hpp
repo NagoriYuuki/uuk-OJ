@@ -36,7 +36,7 @@ public:
 		return pm.remove(id);
 	}
 
-	std::vector<Problem> listAll(int limit = 50, int offset = 0)
+	std::optional<std::vector<Problem>> listAll(int limit = 50, int offset = 0)
 	{
 		return pm.listAll(limit, offset);
 	}
@@ -55,14 +55,14 @@ private:
 		try
 		{
 			auto stmt = std::unique_ptr<sql::Statement>(con.createStatement());
-			auto rs = std::unique_ptr<sql::ResultSet>(stmt->executeQuery("SELECT LAST_INSERT_ID() AS id"));
-			if (!rs->next())
+			auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery("SELECT LAST_INSERT_ID() AS id"));
+			if (!res->next())
 				return std::nullopt;
-
-			return rs->getInt("id");
+			return res->getInt("id");
 		}
-		catch (sql::SQLException &)
+		catch (sql::SQLException &e)
 		{
+			std::cerr << "SQL Error in lastInsertId: " << e.what() << std::endl;
 			return std::nullopt;
 		}
 	}

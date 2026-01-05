@@ -114,7 +114,7 @@ public:
         }
     }
 
-    std::vector<Problem> listAll(int limit = 50, int offset = 0)
+    std::optional<std::vector<Problem>> listAll(int limit = 50, int offset = 0)
     {
         std::vector<Problem> vec;
         try
@@ -139,12 +139,13 @@ public:
                 resPtr->getInt64("ac_count");
                 vec.push_back(problem);
             }
+            return vec;
         }
         catch (sql::SQLException &e)
         {
             std::cerr << "SQL Error in listAll Problems: " << e.what() << std::endl;
         }
-        return vec;
+        return std::nullopt;
     }
 
     // std::pair<i64, i64> countSub(int id)

@@ -4,6 +4,9 @@
 
 #include "db.hpp"
 #include "../services/problem_service.hpp"
+#include "../entities/problem.hpp"
+#include "../services/auth_service.hpp"
+#include "../include/auth_mw.hpp"
 
 using i64 = long long;
 
@@ -11,20 +14,56 @@ signed main(void)
 {
     auto &con = DB::instance().getConnection();
 
-    crow::SimpleApp app;
+    crow::App<AuthMiddleware> app{AuthMiddleware{con}};
 
     CROW_ROUTE(app, "/")
     ([]()
      { return "Hello, uuk-OJ!"; });
 
-    CROW_ROUTE(app, "/api/problems")
-    ([&]()
-     {
+    CROW_ROUTE(app, "/api/auth/login")
+        .methods(crow::HTTPMethod::POST)(
+            [&](const crow::request &req)
+            {
+                auto json = crow::json::load(req.body);
+                if (!json || !json.has("username") || !json.has("password"))
+                    return crow::response(400, "No Username or Password nya~");
+                AuthService auths(con);
+                User user;
+                user.username = json["username"].s();
+                user.password_hash = json["password"].s();
+                auto token = auths.login(user);
+                if (!token.has_value())
+                    return crow::response(401, "Invalid Username or Password nya~");
+                auto res = crow::json::wvalue();
+                res["token"] = token.value();
+                return crow::response(200, res);
+            });
+    CROW_ROUTE(app, "/api/auth/register")
+        .methods(crow::HTTPMethod::POST)(
+            [&](const crow::request &req)
+            {
+                auto json = crow::json::load(req.body);
+                if (!json || !json.has("username") || !json.has("password"))
+                    return crow::response(400, "No Username or Password nya~");
+                auto username = json["username"].s();
+                auto password = json["password"].s();
+                for (auto &i : username)
+                    if (!std::isalnum(i) && i != '_' && i != '-')
+                        return crow::response(400, "Invalid characters in username nya~");
+                if (password.size() < 6)
+                    return crow::response(400, "Password too short nya~");
+                
+            });
+
+    CROW_ROUTE(app, "/api/problems")([&]()
+                                     {
         ProblemService ps(con);
         auto vec = ps.listAll(50, 0);
+        if(!vec.has_value())
+            return crow::response(500, "No problems found nya~");
         crow::json::wvalue res = crow::json::wvalue::list();
         std::size_t idx = 0;
-        for (const auto &i : vec)
+        for (const auto &i : vec.value())
         {
             crow::json::wvalue item;
             item["id"] = i.id;
