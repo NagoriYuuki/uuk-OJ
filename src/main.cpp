@@ -7,6 +7,7 @@
 #include "../entities/problem.hpp"
 #include "../services/auth_service.hpp"
 #include "../include/auth_mw.hpp"
+#include "../services/user_service.hpp"
 
 using i64 = long long;
 
@@ -52,7 +53,13 @@ signed main(void)
                         return crow::response(400, "Invalid characters in username nya~");
                 if (password.size() < 6)
                     return crow::response(400, "Password too short nya~");
-                
+                User user;
+                user.username = username;
+                user.password_hash = password;
+                AuthService auths(con);
+                if (!auths.registerUser(user))
+                    return crow::response(409, "Username already exists nya~");
+                return crow::response(200, "User registered successfully nya~");
             });
 
     CROW_ROUTE(app, "/api/problems")([&]()
@@ -74,7 +81,7 @@ signed main(void)
             item["sub_count"] = i.sub_count;
             res[idx++] = std::move(item);
         }
-        return crow::response(200,res); });
+        return crow::response(200, res); });
 
     CROW_ROUTE(app, "/api/problems/<int>")
     ([&](int problem_id)

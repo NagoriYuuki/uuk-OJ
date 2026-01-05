@@ -999,4 +999,6 @@ CMakeFiles/uukOJ.dir/src/main.cpp.o: \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper/../entities/base_entity.hpp \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/../services/auth_service.hpp \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/include/../entities/user.hpp \
- /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/../include/auth_mw.hpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/../include/auth_mw.hpp \
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/../services/user_service.hpp \
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper/user_mapper.hpp

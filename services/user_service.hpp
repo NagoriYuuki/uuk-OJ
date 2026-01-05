@@ -40,6 +40,26 @@ public:
         return um.listAll(limit, offset);
     }
 
+    
+    bool checkrep(const std::string &username)
+    {
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id,username FROM users WHERE username = ?"));
+            stmtPtr->setString(1, username);
+            auto res = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            if (res->next())
+                return false;
+            return true;
+        }
+        catch (sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in checkrep: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
 private:
     sql::Connection &con;
     UserMapper um;
@@ -60,4 +80,5 @@ private:
             return std::nullopt;
         }
     }
+
 };

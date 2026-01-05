@@ -44,6 +44,30 @@ public:
         return std::nullopt;
     }
 
+    bool registerUser(const User &user)
+    {
+        try
+        {
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id,username FROM users WHERE username = ?"));
+            stmt->setString(1, user.username);
+            auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
+            if (res->next())
+                return false;
+            stmt = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)"));
+            stmt->setString(1, user.username);
+            stmt->setString(2, user.password_hash);
+            stmt->executeUpdate();
+            return true;
+        }
+        catch (const sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in registerUser: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
 private:
     sql::Connection &con;
     std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
