@@ -3,6 +3,8 @@
 
 #include <string>
 
+using i64 = long long;
+
 class Problem : public Entity
 {
 public:
@@ -15,6 +17,8 @@ public:
     std::string sample_output;
     std::string created_time;
     std::string tc_path;
+    i64 sub_count;
+    i64 ac_count;
 
     Problem() = default;
     Problem(const int id,
@@ -25,7 +29,9 @@ public:
             const std::string &sample_input,
             const std::string &sample_output,
             const std::string &created_time,
-            const std::string &tc_path)
+            const std::string &tc_path,
+            const i64 sub_count = 0,
+            const i64 ac_count = 0)
         : id(id),
           title(title),
           time_limit(time_limit),
@@ -34,6 +40,8 @@ public:
           sample_input(sample_input),
           sample_output(sample_output),
           created_time(created_time),
-          tc_path(tc_path) {};
+          tc_path(tc_path),
+          sub_count(sub_count),
+          ac_count(ac_count) {};
     ~Problem() override = default;
 };

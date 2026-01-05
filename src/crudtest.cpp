@@ -57,7 +57,7 @@ void checkProblem(sql::Connection &con)
 {
     try
     {
-        Problem problem = Problem(0, "Sample Problem", 1000, 65536, "Description", "Input", "Output", "", "/path/to/tc");
+        Problem problem = Problem(0, "Sample Problem", 1000, 65536, "Description", "Input", "Output", "", "/path/to/tc", 0, 0);
         ProblemMapper pm(con);
 
         auto checkreset = [&]()

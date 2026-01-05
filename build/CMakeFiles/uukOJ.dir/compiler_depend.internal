@@ -4,6 +4,11 @@
 CMakeFiles/uukOJ.dir/src/main.cpp.o
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/main.cpp
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/include/db.hpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/entities/base_entity.hpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/entities/problem.hpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper/base_mapper.hpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper/problem_mapper.hpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/services/problem_service.hpp
  /usr/include/alloca.h
  /usr/include/arpa/inet.h
  /usr/include/asio.hpp

@@ -6,38 +6,49 @@
 
 #include <memory>
 #include <optional>
+#include <vector>
 
 class ProblemService
 {
 public:
 	explicit ProblemService(sql::Connection &con)
-		: con(con), mapper(con) {}
+		: con(con), pm(con) {}
 
 	std::optional<Problem> getById(const int id)
 	{
-		return mapper.findById(id);
+		return pm.findById(id);
 	}
 
 	std::optional<int> create(const Problem &problem)
 	{
-		if (!mapper.insert(problem))
+		if (!pm.insert(problem))
 			return std::nullopt;
 		return lastInsertId();
 	}
 
 	bool update(const Problem &problem)
 	{
-		return mapper.update(problem);
+		return pm.update(problem);
 	}
 
 	bool remove(const int id)
 	{
-		return mapper.remove(id);
+		return pm.remove(id);
 	}
+
+	std::vector<Problem> listAll(int limit = 50, int offset = 0)
+	{
+		return pm.listAll(limit, offset);
+	}
+
+	// std::pair<i64, i64> countSub(const int id)
+	// {
+	// 	return pm.countSub(id);
+	// }
 
 private:
 	sql::Connection &con;
-	ProblemMapper mapper;
+	ProblemMapper pm;
 
 	std::optional<int> lastInsertId()
 	{
@@ -47,7 +58,7 @@ private:
 			auto rs = std::unique_ptr<sql::ResultSet>(stmt->executeQuery("SELECT LAST_INSERT_ID() AS id"));
 			if (!rs->next())
 				return std::nullopt;
-			
+
 			return rs->getInt("id");
 		}
 		catch (sql::SQLException &)
@@ -55,5 +66,4 @@ private:
 			return std::nullopt;
 		}
 	}
-
 };

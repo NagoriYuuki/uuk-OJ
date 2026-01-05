@@ -34,7 +34,7 @@ public:
         try
         {
             auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "UPDATE users SET username = ?, password_hash = ? WHERE id = ?"));
+                "UPDATE users SET (username, password_hash) VALUES (?, ?) WHERE id = ?"));
             stmPtr->setString(1, user.username);
             stmPtr->setString(2, user.password_hash);
             stmPtr->setInt(3, user.id);

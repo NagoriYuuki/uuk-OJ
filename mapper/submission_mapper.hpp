@@ -38,7 +38,7 @@ public:
         try
         {
             auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "UPDATE submissions SET problem_id = ?, user_id = ?, language = ?, code = ?, status = ?, detail = ?, time_cost = ?, mem_cost = ? WHERE id = ?"));
+                "UPDATE submissions SET (problem_id, user_id, language, code, status, detail, time_cost, mem_cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?) WHERE id = ?"));
             stmPtr->setInt(1, submission.problem_id);
             stmPtr->setInt(2, submission.user_id);
             stmPtr->setString(3, submission.language);

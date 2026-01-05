@@ -18,7 +18,9 @@ CREATE TABLE problems(
     description TEXT,
     sample_input TEXT,
     sample_output TEXT,
-    tc_path VARCHAR(512)
+    tc_path VARCHAR(512),
+    sub_count BIGINT DEFAULT 0,
+    ac_count BIGINT DEFAULT 0
 );
 DROP TABLE IF EXISTS submissions;
 CREATE TABLE submissions(
