@@ -3,6 +3,7 @@
 #include <mariadb/conncpp.hpp>
 
 #include "db.hpp"
+#include "zipcheck.hpp"
 
 #include "user_mapper.hpp"
 #include "../services/problem_service.hpp"
@@ -276,6 +277,34 @@ signed main(void)
                 res["code"] = 200;
                 res["message"] = "Problem deleted successfully nya~";
                 return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/admin/problems/<int>/testcases")
+        .methods(crow::HTTPMethod::POST)(
+            [&](const crow::request &req, int problem_id)
+            {
+                auto &ctx = app.get_context<AuthMiddleware>(req);
+                crow::json::wvalue res;
+                if (!ctx.userid.has_value() || ctx.role != 1)
+                {
+                    res["code"] = 403;
+                    res["message"] = "Admin access required nya~";
+                    return crow::response(403, res);
+                }
+
+                ZipCheck zc;
+                auto result = zc.zipcheck(req, problem_id);
+                if (!result.judge)
+                {
+                    res["code"] = 400;
+                    res["message"] = result.message;
+                    return crow::response(400, res);
+                }
+                res["code"] = 200;
+                res["message"] = "Testcases uploaded successfully nya~";
+                res["tc_path"] = result.tc_path;
+                return crow::response(200, res);
+
             });
 
     CROW_ROUTE(app, "/api/admin/users")

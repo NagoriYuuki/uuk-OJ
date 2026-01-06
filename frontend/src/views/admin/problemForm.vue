@@ -56,9 +56,26 @@
                 <textarea v-model="form.sample_output" rows="3" style="width: 100%"></textarea>
             </div>
 
+            <div style="margin-top: 10px; border: 1px dashed #ccc; padding: 10px; border-radius: 4px;">
+                <label style="font-weight: bold;">上传测试数据 (ZIP):</label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                    <input type="file" ref="fileInput" accept=".zip" />
+                    <button type="button" @click="uploadTestcases" :disabled="uploading" v-if="isEdit">
+                        {{ uploading ? '上传中...' : '上传并解压' }}
+                    </button>
+                    <span v-else style="color: #666; font-size: 0.9em;">
+                        (请先保存题目，生成ID后再上传数据)
+                    </span>
+                </div>
+                <div v-if="uploadMsg" :style="{ color: uploadSuccess ? 'green' : 'red', marginTop: '5px' }">
+                    {{ uploadMsg }}
+                </div>
+            </div>
+
             <div style="margin-top: 10px;">
                 <label>测试用例路径 (服务端路径):</label>
-                <input v-model="form.tc_path" style="width: 100%" placeholder="/path/to/testcases" />
+                <!-- 现在这个可以变成只读，或者允许手动修改 -->
+                <input v-model="form.tc_path" style="width: 100%" />
             </div>
 
             <div style="margin-top: 20px;">
@@ -78,6 +95,7 @@ import { renderMarkdown } from '../../utils/markdown'
 const route = useRoute()
 const router = useRouter()
 const previewMode = ref(false)
+
 
 const problemId = route.params.id
 const isEdit = computed(() => !!problemId)
@@ -152,8 +170,56 @@ async function submitForm() {
         console.error(e)
         alert('请求出错')
     }
+
 }
 
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploading = ref(false)
+const uploadMsg = ref('')
+const uploadSuccess = ref(false)
+
+
+async function uploadTestcases() {
+    if (!fileInput.value?.files?.length) {
+        alert('请选择一个ZIP文件')
+        return
+    }
+
+    const file = fileInput.value.files[0]
+    const formData = new FormData()
+    formData.append('file', file)
+
+    uploading.value = true
+    uploadMsg.value = ''
+
+    try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`/api/admin/problems/${problemId}/testcases`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        })
+
+        const data = await response.json()
+
+        if (response.ok && data.code === 200) {
+            uploadSuccess.value = true
+            uploadMsg.value = '上传成功！路径已更新 (请点击保存提交以持久化路径)'
+            if (data.tc_path) {
+                form.tc_path = data.tc_path
+            }
+        } else {
+            throw new Error(data.message || 'Upload failed')
+        }
+    } catch (e: any) {
+        uploadSuccess.value = false
+        uploadMsg.value = '上传失败: ' + e.message
+    } finally {
+        uploading.value = false
+    }
+}
 
 onMounted(() => {
     fetchDetails()

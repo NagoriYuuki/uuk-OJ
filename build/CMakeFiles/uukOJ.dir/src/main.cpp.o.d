@@ -992,6 +992,7 @@ CMakeFiles/uukOJ.dir/src/main.cpp.o: \
  /usr/local/include/mariadb/conncpp/Exception.hpp \
  /usr/local/include/mariadb/conncpp/jdbccompat.hpp \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/include/db.hpp \
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/include/zipcheck.hpp \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper/user_mapper.hpp \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper/base_mapper.hpp \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/mapper/../entities/user.hpp \
