@@ -49,7 +49,7 @@ private:
         try
         {
             auto stmt = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "SELECT user_id, role FROM sessions WHERE token = ?"));
+                "SELECT s.user_id, u.role FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token = ?"));
             stmt->setString(1, token);
             auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());
             if (!res->next())

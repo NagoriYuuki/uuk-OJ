@@ -7,7 +7,12 @@
             <p>
                 <RouterLink :to="{ name: 'problem-list' }">进入题目列表</RouterLink>
                 <br>
+                <span v-if="isAdmin">
+                    <RouterLink :to="{ name: 'problem-ma' }">题目管理</RouterLink>
+                </span>
+                <br>
                 <a href="#" @click.prevent="logout">退出登录</a>
+
             </p>
         </div>
 
@@ -16,7 +21,7 @@
                 <RouterLink :to="{ name: 'problem-list' }">进入题目列表</RouterLink>
                 <br>
                 <RouterLink :to="{ name: 'login' }">登录！</RouterLink>
-            </p> 
+            </p>
         </div>
 
 
@@ -29,9 +34,11 @@ import { ref, onMounted } from 'vue'
 
 const username = ref('')
 const router = useRouter()
+let isAdmin = ref(false)
 
 onMounted(() => {
     username.value = localStorage.getItem('username') || ''
+    checkAuth()
 })
 
 function logout() {
@@ -40,6 +47,26 @@ function logout() {
     username.value = ''
     alert('已退出登录')
     router.push('/index')
+}
+
+async function checkAuth() {
+    const token = localStorage.getItem('token')
+    if (!token)
+        return
+    try {
+        const res = await fetch('/api/auth/userinfo', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+
+        if (res.ok) {
+            const data = await res.json()
+            isAdmin.value = data.role === 1
+        }
+    } catch (e) {
+        console.error("Auth check failed", e)
+    }
 }
 
 </script>

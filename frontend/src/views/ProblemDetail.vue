@@ -21,7 +21,7 @@
             </p>
 
             <h3>题目描述</h3>
-            <pre style="white-space: pre-wrap">{{ problem.description }}</pre>
+            <div class="markdown-body" v-html="renderedDescription"></div>
 
             <h3>样例输入</h3>
             <pre>{{ problem.sample_input }}</pre>
@@ -33,8 +33,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { renderMarkdown } from '../utils/markdown'
 
 type ProblemDetail = {
     id: number
@@ -55,6 +56,10 @@ const route = useRoute()
 const problem = ref<ProblemDetail | null>(null)
 const loading = ref(false)
 const error = ref('')
+
+const renderedDescription = computed(() => {
+    return problem.value ? renderMarkdown(problem.value.description) : ''
+})
 
 function getId(): number {
     const raw = route.params.id
@@ -91,3 +96,40 @@ watch(
     () => load(),
 )
 </script>
+
+<style>
+.markdown-body {
+    line-height: 1.6;
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: .3em;
+}
+.markdown-body p {
+    margin-bottom: 16px;
+}
+.markdown-body code {
+    background-color: rgba(175, 184, 193, 0.2);
+    border-radius: 6px;
+    padding: .2em .4em;
+    font-family: monospace;
+}
+.markdown-body pre {
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    padding: 16px;
+    overflow: auto;
+}
+.markdown-body pre code {
+    background-color: transparent;
+    padding: 0;
+}
+.markdown-body blockquote {
+    color: #656d76;
+    border-left: .25em solid #d0d7de;
+    padding: 0 1em;
+    margin: 0;
+}
+</style>

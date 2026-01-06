@@ -8,6 +8,9 @@
 
         <p v-if="error" style="color: red">{{ error }}</p>
 
+        <RouterLink :to="{ name: 'index' }">返回主页</RouterLink>
+
+
         <ul v-if="problems.length">
             <li v-for="p in problems" :key="p.id">
                 <RouterLink :to="{ name: 'problem-detail', params: { id: p.id } }">

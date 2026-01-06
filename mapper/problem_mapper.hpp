@@ -45,19 +45,19 @@ public:
     {
         try
         {
-            auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "UPDATE problems SET (title, time_limit, mem_limit, description, sample_input, sample_output, tc_path, sub_count, ac_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) WHERE id = ?"));
-            stmPtr->setString(1, problem.title);
-            stmPtr->setInt(2, problem.time_limit);
-            stmPtr->setInt(3, problem.mem_limit);
-            stmPtr->setString(4, problem.description);
-            stmPtr->setString(5, problem.sample_input);
-            stmPtr->setString(6, problem.sample_output);
-            stmPtr->setString(7, problem.tc_path);
-            stmPtr->setInt64(8, problem.sub_count);
-            stmPtr->setInt64(9, problem.ac_count);
-            stmPtr->setInt(10, problem.id);
-            stmPtr->executeUpdate();
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                    "UPDATE problems SET title = ?, time_limit = ?, mem_limit = ?, description = ?, sample_input = ?, sample_output = ?, tc_path = ?, sub_count = ?, ac_count = ? WHERE id = ?"));
+            stmtPtr->setString(1, problem.title);
+            stmtPtr->setInt(2, problem.time_limit);
+            stmtPtr->setInt(3, problem.mem_limit);
+            stmtPtr->setString(4, problem.description);
+            stmtPtr->setString(5, problem.sample_input);
+            stmtPtr->setString(6, problem.sample_output);
+            stmtPtr->setString(7, problem.tc_path);
+            stmtPtr->setInt64(8, problem.sub_count);
+            stmtPtr->setInt64(9, problem.ac_count);
+            stmtPtr->setInt(10, problem.id);
+            stmtPtr->executeUpdate();
             return true;
         }
         catch (sql::SQLException &e)
@@ -70,10 +70,10 @@ public:
     {
         try
         {
-            auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
                 "DELETE FROM problems WHERE id = ?"));
-            stmPtr->setInt(1, id);
-            stmPtr->executeUpdate();
+            stmtPtr->setInt(1, id);
+            stmtPtr->executeUpdate();
             return true;
         }
         catch (sql::SQLException &e)
@@ -119,10 +119,10 @@ public:
         std::vector<Problem> vec;
         try
         {
-            auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement("SELECT id,title,time_limit,mem_limit,description,sample_input,sample_output,created_time,tc_path, sub_count, ac_count FROM problems ORDER BY id DESC LIMIT ? OFFSET ?"));
-            stmPtr->setInt(1, limit);
-            stmPtr->setInt(2, offset);
-            auto resPtr = std::unique_ptr<sql::ResultSet>(stmPtr->executeQuery());
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement("SELECT id,title,time_limit,mem_limit,description,sample_input,sample_output,created_time,tc_path, sub_count, ac_count FROM problems ORDER BY id DESC LIMIT ? OFFSET ?"));
+            stmtPtr->setInt(1, limit);
+            stmtPtr->setInt(2, offset);
+            auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
             while (resPtr->next())
             {
                 Problem problem(
@@ -152,10 +152,10 @@ public:
     // {
     //     try
     //     {
-    //         auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+    //         auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
     //             "SELECT COUNT(*) AS total, SUM(CASE WHEN status = 'Accepted' THEN 1 ELSE 0 END) AS accepted FROM submissions WHERE problem_id = ?"));
-    //         stmPtr->setInt(1, id);
-    //         auto resPtr = std::unique_ptr<sql::ResultSet>(stmPtr->executeQuery());
+    //         stmtPtr->setInt(1, id);
+    //         auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
     //         if (resPtr->next())
     //         {
     //             i64 total = resPtr->getInt64("total");
