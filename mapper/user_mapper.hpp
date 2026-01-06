@@ -17,9 +17,10 @@ public:
         try
         {
             auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "INSERT INTO users (username, password_hash) VALUES (?, ?)"));
+                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)"));
             stmtPtr->setString(1, user.username);
             stmtPtr->setString(2, user.password_hash);
+            stmtPtr->setInt(3, user.role);
             stmtPtr->executeUpdate();
             return true;
         }
@@ -35,10 +36,11 @@ public:
         try
         {
             auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "UPDATE users SET (username, password_hash) VALUES (?, ?) WHERE id = ?"));
+                "UPDATE users SET username=?, password_hash=?, role=? WHERE id = ?"));
             stmPtr->setString(1, user.username);
             stmPtr->setString(2, user.password_hash);
-            stmPtr->setInt(3, user.id);
+            stmPtr->setInt(3, user.role);
+            stmPtr->setInt(4, user.id);
             stmPtr->executeUpdate();
             return true;
         }
@@ -71,7 +73,7 @@ public:
         try
         {
             auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "SELECT id, username, password_hash FROM users WHERE id = ?"));
+                "SELECT id, username, password_hash, role FROM users WHERE id = ?"));
             stmtPtr->setInt(1, id);
             auto rs = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
             if (!rs->next())
@@ -82,7 +84,8 @@ public:
             User user(
                 rs->getInt("id"),
                 std::string(rs->getString("username").c_str()),
-                std::string(rs->getString("password_hash").c_str()));
+                std::string(rs->getString("password_hash").c_str()),
+                rs->getInt("role"));
             return user;
         }
         catch (sql::SQLException &e)
@@ -98,7 +101,7 @@ public:
         try
         {
             auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "SELECT id, username, password_hash FROM users LIMIT ? OFFSET ?"));
+                "SELECT id, username, password_hash, role FROM users LIMIT ? OFFSET ?"));
             stmtPtr->setInt(1, limit);
             stmtPtr->setInt(2, offset);
             auto res = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
@@ -107,7 +110,8 @@ public:
                 User user(
                     res->getInt("id"),
                     std::string(res->getString("username").c_str()),
-                    std::string(res->getString("password_hash").c_str()));
+                    std::string(res->getString("password_hash").c_str()),
+                    res->getInt("role"));
                 vec.push_back(user);
             }
             return vec;

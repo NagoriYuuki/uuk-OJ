@@ -9,6 +9,9 @@
                 <br>
                 <span v-if="isAdmin">
                     <RouterLink :to="{ name: 'problem-ma' }">题目管理</RouterLink>
+                    <br>
+                    <RouterLink :to="{ name: 'user-ma' }">用户管理</RouterLink>
+
                 </span>
                 <br>
                 <a href="#" @click.prevent="logout">退出登录</a>

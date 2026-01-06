@@ -119,6 +119,7 @@ async function submitForm() {
     const url = isEdit.value
         ? `/api/admin/problems/${problemId}`
         : `/api/admin/problems`
+    console.debug(url)
     const method = isEdit.value ? 'PUT' : 'POST'
 
     try {
@@ -139,7 +140,7 @@ async function submitForm() {
         }
 
         const data = await res.json()
-        const id = isEdit.value ? problemId : data.id
+        const id = isEdit.value ? problemId : data.new_id
 
         alert('保存成功')
         router.push({

@@ -274,6 +274,160 @@ signed main(void)
                 return crow::response(200, res);
             });
 
+    CROW_ROUTE(app, "/api/admin/users")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req)
+            {
+                auto &ctx = app.get_context<AuthMiddleware>(req);
+                crow::json::wvalue res;
+                if (!ctx.userid.has_value() || ctx.role != 1)
+                {
+                    res["code"] = 403;
+                    res["message"] = "Admin access required nya~";
+                    return crow::response(403, res);
+                }
+                UserService us(con);
+                auto vec = us.listAll(100, 0); // Default limit 100
+                if (!vec.has_value())
+                {
+                    res["code"] = 500;
+                    res["message"] = "No users found nya~";
+                    return crow::response(500, res);
+                }
+                crow::json::wvalue list = crow::json::wvalue::list();
+                std::size_t idx = 0;
+                for (const auto &u : vec.value())
+                {
+                    crow::json::wvalue item;
+                    item["id"] = u.id;
+                    item["username"] = u.username;
+                    item["role"] = u.role;
+                    // Do not return password hash
+                    list[idx++] = std::move(item);
+                }
+                return crow::response(200, list);
+            });
+
+    CROW_ROUTE(app, "/api/admin/users")
+        .methods(crow::HTTPMethod::POST)(
+            [&](const crow::request &req)
+            {
+                auto &ctx = app.get_context<AuthMiddleware>(req);
+                crow::json::wvalue res;
+                if (!ctx.userid.has_value() || ctx.role != 1)
+                {
+                    res["code"] = 403;
+                    res["message"] = "Admin access required nya~";
+                    return crow::response(403, res);
+                }
+                auto json = crow::json::load(req.body);
+                if (!json || !json.has("username") || !json.has("password"))
+                {
+                    res["code"] = 400;
+                    res["message"] = "Username and password required nya~";
+                    return crow::response(400, res);
+                }
+                User user;
+                user.username = json["username"].s();
+                user.password_hash = json["password"].s();
+                user.role = json.has("role") ? json["role"].i() : 0;
+
+                UserService us(con);
+                if (!us.checkrep(user.username))
+                {
+                    res["code"] = 409;
+                    res["message"] = "Username already exists nya~";
+                    return crow::response(409, res);
+                }
+                auto new_id = us.create(user);
+                if (!new_id.has_value())
+                {
+                    res["code"] = 500;
+                    res["message"] = "Failed to create user nya~";
+                    return crow::response(500, res);
+                }
+                res["code"] = 201;
+                res["new_id"] = new_id.value();
+                res["message"] = "User created successfully nya~";
+                return crow::response(201, res);
+            });
+
+    CROW_ROUTE(app, "/api/admin/users/<int>")
+        .methods(crow::HTTPMethod::PUT)(
+            [&](const crow::request &req, int id)
+            {
+                auto &ctx = app.get_context<AuthMiddleware>(req);
+                crow::json::wvalue res;
+                if (!ctx.userid.has_value() || ctx.role != 1)
+                {
+                    res["code"] = 403;
+                    res["message"] = "Admin access required nya~";
+                    return crow::response(403, res);
+                }
+                auto json = crow::json::load(req.body);
+                if (!json)
+                {
+                    res["code"] = 400;
+                    res["message"] = "Invalid JSON nya~";
+                    return crow::response(400, res);
+                }
+                UserService us(con);
+                auto temp = us.getById(id);
+                if (!temp.has_value())
+                {
+                    res["code"] = 404;
+                    res["message"] = "User not found nya~";
+                    return crow::response(404, res);
+                }
+                User u = temp.value();
+                if (json.has("username"))
+                    u.username = json["username"].s();
+                if (json.has("password"))
+                    u.password_hash = json["password"].s();
+                if (json.has("role"))
+                    u.role = json["role"].i();
+
+                if (!us.update(u))
+                {
+                    res["code"] = 500;
+                    res["message"] = "Failed to update user nya~";
+                    return crow::response(500, res);
+                }
+                res["code"] = 200;
+                res["message"] = "User updated successfully nya~";
+                return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/admin/users/<int>")
+        .methods(crow::HTTPMethod::DELETE)(
+            [&](const crow::request &req, int id)
+            {
+                auto &ctx = app.get_context<AuthMiddleware>(req);
+                crow::json::wvalue res;
+                if (!ctx.userid.has_value() || ctx.role != 1)
+                {
+                    res["code"] = 403;
+                    res["message"] = "Admin access required nya~";
+                    return crow::response(403, res);
+                }
+                UserService us(con);
+                if (id == ctx.userid.value())
+                {
+                    res["code"] = 400;
+                    res["message"] = "Cannot delete yourself nya~";
+                    return crow::response(400, res);
+                }
+                if (!us.remove(id))
+                {
+                    res["code"] = 500;
+                    res["message"] = "Failed to delete user nya~";
+                    return crow::response(500, res);
+                }
+                res["code"] = 200;
+                res["message"] = "User deleted successfully nya~";
+                return crow::response(200, res);
+            });
+
     app.port(18080)
         .run();
 
