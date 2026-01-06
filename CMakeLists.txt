@@ -10,8 +10,12 @@ add_executable(uukOJ
 )
 
 # CRUD 冒烟测试（最简单验证 Mapper 是否能正常工作）
-add_executable(crud_smoke src/crud_smoke.cpp)
-add_executable(crudtest src/crudtest.cpp)
+add_executable(crud_smoke 
+    src/crud_smoke.cpp
+    )
+add_executable(crudtest 
+    src/crudtest.cpp
+)
 
 
 # MariaDB Connector/C++ 库路径

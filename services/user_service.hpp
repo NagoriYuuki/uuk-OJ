@@ -2,8 +2,6 @@
 
 #include <mariadb/conncpp.hpp>
 
-#include "user_mapper.hpp"
-
 #include <memory>
 #include <optional>
 #include <string>

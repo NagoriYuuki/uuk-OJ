@@ -9,6 +9,7 @@
 #include <random>
 
 #include <../entities/user.hpp>
+#include "encode.hpp"
 
 class AuthService
 {
@@ -26,8 +27,13 @@ public:
             if (!res->next())
                 return std::nullopt;
             std::string db_pw = res->getString("password_hash").c_str();
+            std::cerr << db_pw << " " << user.password_hash << std::endl;
+            // auto hash_pw = Encode::hash(user.password_hash);
+            std::cerr << "Hashed input pw: " << user.password_hash << std::endl;
             if (db_pw != user.password_hash)
                 return std::nullopt;
+            // if (db_pw != user.password_hash)
+            //     return std::nullopt;
             std::string token = TokenGenerator();
             int user_id = res->getInt("id");
             stmt = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
