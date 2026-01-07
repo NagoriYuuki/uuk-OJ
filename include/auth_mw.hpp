@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include "db_pool.hpp"
 
 class AuthMiddleware
 {
@@ -17,7 +18,6 @@ public:
     };
 
     AuthMiddleware() = default;
-    explicit AuthMiddleware(sql::Connection &con) : con(con) {}
     ~AuthMiddleware() = default;
 
     void before_handle(crow::request &req, crow::response &res, context &ctx)
@@ -42,13 +42,12 @@ public:
     void after_handle(crow::request &, crow::response &, context &) {}
 
 private:
-    sql::Connection &con;
-
     std::optional<std::pair<int, int>> getUserByToken(const std::string &token)
     {
         try
         {
-            auto stmt = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+            auto conn = DBPool::instance().getConnection();
+            auto stmt = std::unique_ptr<sql::PreparedStatement>(conn->prepareStatement(
                 "SELECT s.user_id, u.role FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token = ?"));
             stmt->setString(1, token);
             auto res = std::unique_ptr<sql::ResultSet>(stmt->executeQuery());

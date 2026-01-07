@@ -4,6 +4,7 @@
 
 #include "db.hpp"
 #include "zipcheck.hpp"
+#include "db_pool.hpp"
 
 #include "user_mapper.hpp"
 #include "../services/problem_service.hpp"
@@ -11,23 +12,25 @@
 #include "../services/auth_service.hpp"
 #include "../include/auth_mw.hpp"
 #include "../services/user_service.hpp"
+#include "../services/submission_service.hpp"
 
 using i64 = long long;
 
 signed main(void)
 {
-    auto &con = DB::instance().getConnection();
-
-    crow::App<AuthMiddleware> app{AuthMiddleware{con}};
+    crow::App<AuthMiddleware> app;
 
     CROW_ROUTE(app, "/")
     ([]()
      { return "Hello, uuk-OJ!"; });
 
+
     CROW_ROUTE(app, "/api/auth/login")
         .methods(crow::HTTPMethod::POST)(
             [&](const crow::request &req)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 auto json = crow::json::load(req.body);
                 crow::json::wvalue res;
                 if (!json || !json.has("username") || !json.has("password"))
@@ -57,6 +60,8 @@ signed main(void)
         .methods(crow::HTTPMethod::POST)(
             [&](const crow::request &req)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 auto json = crow::json::load(req.body);
                 crow::json::wvalue res;
                 if (!json || !json.has("username") || !json.has("password"))
@@ -116,6 +121,8 @@ signed main(void)
         .methods(crow::HTTPMethod::GET)(
             [&]()
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 ProblemService ps(con);
                 auto vec = ps.listAll(50, 0);
 
@@ -146,6 +153,8 @@ signed main(void)
         .methods(crow::HTTPMethod::GET)(
             [&](int problem_id)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 ProblemService ps(con);
                 auto problem = ps.getById(problem_id);
                 crow::json::wvalue item;
@@ -173,6 +182,8 @@ signed main(void)
         .methods(crow::HTTPMethod::POST)(
             [&](const crow::request &req)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 auto &ctx = app.get_context<AuthMiddleware>(req);
                 crow::json::wvalue res;
                 if (!ctx.userid.has_value() || ctx.role != 1)
@@ -218,6 +229,8 @@ signed main(void)
         .methods(crow::HTTPMethod::PUT)(
             [&](const crow::request &req, int id)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 crow::json::wvalue res;
                 auto &ctx = app.get_context<AuthMiddleware>(req);
                 if (!ctx.userid.has_value() || ctx.role != 1)
@@ -253,6 +266,8 @@ signed main(void)
         .methods(crow::HTTPMethod::DELETE)(
             [&](const crow::request &req, int problem_id)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 crow::json::wvalue res;
                 auto &ctx = app.get_context<AuthMiddleware>(req);
                 if (!ctx.userid.has_value() || ctx.role != 1)
@@ -304,13 +319,14 @@ signed main(void)
                 res["message"] = "Testcases uploaded successfully nya~";
                 res["tc_path"] = result.tc_path;
                 return crow::response(200, res);
-
             });
 
     CROW_ROUTE(app, "/api/admin/users")
         .methods(crow::HTTPMethod::GET)(
             [&](const crow::request &req)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 auto &ctx = app.get_context<AuthMiddleware>(req);
                 crow::json::wvalue res;
                 if (!ctx.userid.has_value() || ctx.role != 1)
@@ -344,6 +360,8 @@ signed main(void)
         .methods(crow::HTTPMethod::POST)(
             [&](const crow::request &req)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 auto &ctx = app.get_context<AuthMiddleware>(req);
                 crow::json::wvalue res;
                 if (!ctx.userid.has_value() || ctx.role != 1)
@@ -390,6 +408,8 @@ signed main(void)
         .methods(crow::HTTPMethod::PUT)(
             [&](const crow::request &req, int id)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 auto &ctx = app.get_context<AuthMiddleware>(req);
                 crow::json::wvalue res;
                 if (!ctx.userid.has_value() || ctx.role != 1)
@@ -436,6 +456,8 @@ signed main(void)
         .methods(crow::HTTPMethod::DELETE)(
             [&](const crow::request &req, int id)
             {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
                 auto &ctx = app.get_context<AuthMiddleware>(req);
                 crow::json::wvalue res;
                 if (!ctx.userid.has_value() || ctx.role != 1)
@@ -461,6 +483,167 @@ signed main(void)
                 res["message"] = "User deleted successfully nya~";
                 return crow::response(200, res);
             });
+
+    CROW_ROUTE(app, "/api/submit/all")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req)
+            {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
+                SubmissionService ss(con);
+                auto vec = ss.listAll(50, 0);
+                if (!vec.has_value())
+                {
+                    crow::json::wvalue res;
+                    res["code"] = 500;
+                    res["message"] = "No submissions found nya~";
+                    return crow::response(500, res);
+                }
+                crow::json::wvalue res = crow::json::wvalue::list();
+                std::size_t idx = 0;
+                for (const auto &i : vec.value())
+                {
+                    crow::json::wvalue item;
+                    item["id"] = i.id;
+                    item["problem_id"] = i.problem_id;
+                    item["user_id"] = i.user_id;
+                    item["language"] = i.language;
+                    item["status"] = i.status;
+                    item["submit_time"] = i.submit_time;
+                    item["time_cost"] = i.time_cost;
+                    item["mem_cost"] = i.mem_cost;
+                    res[idx++] = std::move(item);
+                }
+                return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/submit/new")
+        .methods(crow::HTTPMethod::POST)(
+            [&](const crow::request &req)
+            {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
+                auto &ctx = app.get_context<AuthMiddleware>(req);
+                crow::json::wvalue res;
+                if (!ctx.userid.has_value())
+                {
+                    res["code"] = 401;
+                    res["message"] = "Unlogged nya~";
+                    return crow::response(401, res);
+                }
+                auto json = crow::json::load(req.body);
+                if (!json || !json.has("problem_id") || !json.has("language") || !json.has("code"))
+                {
+                    res["code"] = 400;
+                    res["message"] = "Invalid submission data nya~";
+                    return crow::response(400, res);
+                }
+
+                Submission submission;
+
+                submission.problem_id = json["problem_id"].i();
+                submission.user_id = ctx.userid.value();
+                submission.language = std::string(json["language"].s());
+                submission.code = std::string(json["code"].s());
+                submission.status = "Pending";
+                submission.detail = "";
+                submission.submit_time = "";
+                submission.time_cost = 0;
+                submission.mem_cost = 0;
+                SubmissionService ss(con);
+                auto new_id = ss.create(submission);
+                if (!new_id.has_value())
+                {
+                    res["code"] = 500;
+                    res["message"] = "Failed to submit nya~";
+                    return crow::response(500, res);
+                }
+                res["code"] = 200;
+                res["new_id"] = new_id.value();
+                res["message"] = "Submit successful nya~";
+                return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/submit/<int>")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req, int submit_id)
+            {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
+                auto &ctx = app.get_context<AuthMiddleware>(req);
+                crow::json::wvalue res;
+                if (!ctx.userid.has_value())
+                {
+                    res["code"] = 401;
+                    res["message"] = "Unlogged nya~";
+                    return crow::response(401, res);
+                }
+                SubmissionService ss(con);
+                auto submission = ss.getById(submit_id);
+                if (!submission.has_value())
+                {
+                    res["code"] = 404;
+                    res["message"] = "Submission not found nya~";
+                    return crow::response(404, res);
+                }
+                int uid = submission->user_id;
+                if (ctx.role != 1 && ctx.userid.value() != uid)
+                {
+                    res["code"] = 403;
+                    res["message"] = "Forbidden nya~";
+                    return crow::response(403, res);
+                }
+                res["id"] = submission->id;
+                res["problem_id"] = submission->problem_id;
+                res["user_id"] = submission->user_id;
+                res["language"] = submission->language;
+                res["code"] = submission->code;
+                res["status"] = submission->status;
+                res["detail"] = submission->detail;
+                res["submit_time"] = submission->submit_time;
+                res["time_cost"] = submission->time_cost;
+                res["mem_cost"] = submission->mem_cost;
+                return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/submit/problem/<int>/all")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req, int problem_id)
+            {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
+                SubmissionService ss(con);
+                auto vec = ss.findByProblemId(problem_id);
+                if (!vec.has_value())
+                {
+                    crow::json::wvalue res;
+                    res["code"] = 500;
+                    res["message"] = "No submissions found nya~";
+                    return crow::response(500, res);
+                }
+                crow::json::wvalue res = crow::json::wvalue::list();
+                std::size_t idx = 0;
+                for (const auto &i : vec.value())
+                {
+                    crow::json::wvalue item;
+                    item["id"] = i.id;
+                    item["problem_id"] = i.problem_id;
+                    item["user_id"] = i.user_id;
+                    item["language"] = i.language;
+                    item["status"] = i.status;
+                    item["submit_time"] = i.submit_time;
+                    item["time_cost"] = i.time_cost;
+                    item["mem_cost"] = i.mem_cost;
+                    res[idx++] = std::move(item);
+                }
+                return crow::response(200, res);
+            });
+
+    // CROW_ROUTE(app, "/api/submit/problem/<int>/new")
+    //     .methods(crow::HTTPMethod::POST)(
+    //         [&](const crow::request &req, int problem_id) {
+
+    //         });
 
     app.port(18080)
         .run();

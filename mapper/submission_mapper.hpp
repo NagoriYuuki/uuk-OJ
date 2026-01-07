@@ -105,4 +105,73 @@ public:
             return std::nullopt;
         }
     }
+
+    std::optional<std::vector<Submission>> listAll(int limit = 50, int offset = 0)
+    {
+        std::vector<Submission> vec;
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost FROM submissions ORDER BY id DESC LIMIT ? OFFSET ?"));
+            stmtPtr->setInt(1, limit);
+            stmtPtr->setInt(2, offset);
+            auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            while (resPtr->next())
+            {
+                Submission submission(
+                    resPtr->getInt64("id"),
+                    resPtr->getInt("problem_id"),
+                    resPtr->getInt("user_id"),
+                    std::string(resPtr->getString("language").c_str()),
+                    std::string(resPtr->getString("code").c_str()),
+                    std::string(resPtr->getString("status").c_str()),
+                    std::string(resPtr->getString("detail").c_str()),
+                    std::string(resPtr->getString("submit_time").c_str()),
+                    resPtr->getInt("time_cost"),
+                    resPtr->getInt("mem_cost"));
+                vec.push_back(submission);
+            }
+            return vec;
+        }
+        catch (sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in listAll Submission: " << e.what() << std::endl;
+            return std::nullopt;
+        }
+    }
+
+    std::optional<std::vector<Submission>> findByProblemId(const int problem_id, int limit = 50, int offset = 0)
+    {
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost FROM submissions WHERE problem_id = ? ORDER BY id DESC LIMIT ? OFFSET ?"));
+            stmtPtr->setInt(1, problem_id);
+            stmtPtr->setInt(2, limit);
+            stmtPtr->setInt(3, offset);
+            std::vector<Submission> vec;
+            auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            while (resPtr->next())
+            {
+                Submission submission(
+                    resPtr->getInt64("id"),
+                    resPtr->getInt("problem_id"),
+                    resPtr->getInt("user_id"),
+                    std::string(resPtr->getString("language").c_str()),
+                    std::string(resPtr->getString("code").c_str()),
+                    std::string(resPtr->getString("status").c_str()),
+                    std::string(resPtr->getString("detail").c_str()),
+                    std::string(resPtr->getString("submit_time").c_str()),
+                    resPtr->getInt("time_cost"),
+                    resPtr->getInt("mem_cost"));
+                vec.push_back(submission);
+            }
+            return vec;
+        }
+        catch (const sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in findByProblemId Submission: " << e.what() << std::endl;
+            return std::nullopt;
+        }
+    }
 };
