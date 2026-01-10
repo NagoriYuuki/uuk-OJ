@@ -17,7 +17,7 @@
         </p>
         <br>
         <p>
-            <RouterLink to="/Index">返回首页</RouterLink>
+            <RouterLink to="/">返回首页</RouterLink>
         </p>
     </div>
 </template>
@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { login } from '../utils/auth'
 
 const username = ref('')
 const password = ref('')
@@ -36,23 +37,9 @@ async function handleLogin() {
     loading.value = true
     error.value = ''
     try {
-        const resp = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: username.value, password: password.value })
-        })
-
-        const data = await resp.json().catch(() => null)
-
-        if (!resp.ok)
-            throw new Error(data?.message || '登录失败')
-
-
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('username', username.value)
-
-        alert('登录成功！')
-        router.push('/')
+        await login(username.value, password.value)
+        const redirect = (router.currentRoute.value.query.redirect as string) || '/'
+        router.push(redirect)
     } catch (e: any) {
         error.value = e.message
     } finally {

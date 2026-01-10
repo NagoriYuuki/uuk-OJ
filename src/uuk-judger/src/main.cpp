@@ -158,9 +158,6 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
 
             const std::string input_file = data_path + "/data" + std::to_string(i) + ".in";
             const std::string output_file = data_path + "/data" + std::to_string(i) + ".out";
-            config.input_path = input_file;
-            config.output_path = work_path + "/user_output.txt";
-            Container container(config);
 
             if (!std::filesystem::exists(input_file))
             {
@@ -168,6 +165,10 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                 result.detail = "Input file missing for Test #" + std::to_string(i);
                 break;
             }
+            
+            config.input_path = input_file;
+            config.output_path = work_path + "/user_output.txt";
+            Container container(config);
 
             auto process_info = container.start();
             if (process_info.pid == -1)

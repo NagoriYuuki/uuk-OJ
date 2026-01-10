@@ -21,7 +21,7 @@
         </p>
         <br>
         <p>
-            <RouterLink to="/Index">返回首页</RouterLink>
+            <RouterLink to="/">返回首页</RouterLink>
         </p>
     </div>
 </template>

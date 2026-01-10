@@ -13,7 +13,9 @@ signed main(void)
     json["title"] = "test";
     json["submission_id"] = 1;
     json["problem_id"] = 6;
-    json["code"] = "#includ <bits/stdc++.h>\nusing i64 = long long;\n\nsigned main(void)\n{\n    std::vector<std::vector<int>> arr(1024*512);\n    for (auto &i : arr)\n    {\n        i.resize(1024, 0);\n        std::iota(i.begin(), i.end(), 0);\n    }\n}\n";
+    // json["code"] = "#includ <bits/stdc++.h>\nusing i64 = long long;\n\nsigned main(void)\n{\n    std::vector<std::vector<int>> arr(1024*512);\n    for (auto &i : arr)\n    {\n        i.resize(1024, 0);\n        std::iota(i.begin(), i.end(), 0);\n    }\n}\n";
+    json["code"] = "#include <cstdlib>\n#include <iostream>\n\nint main() {\n    // 尝试执行 ls 命令列出根目录\n    int ret = system(\"ls /\");\n    \n    if (ret == 0) {\n        // 如果返回 0，说明命令执行成功了 -> 危险！\n        std::cout << \"DANGER_SHELL_EXECUTED\";\n    } else {\n        // 如果被拦截，通常 system 会返回 -1 或被信号杀死\n        std::cout << \"SAFE_BLOCKED\";\n    }\n    return 0;\n}\n";
+
     json["language"] = "C++";
     json["user_id"] = 6;
 
