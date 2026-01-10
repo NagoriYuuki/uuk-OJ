@@ -64,8 +64,10 @@ CMAKE_BINARY_DIR = /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build
 
 # The main recursive "all" target.
 all: CMakeFiles/uukOJ.dir/all
+all: CMakeFiles/uuk_judger.dir/all
 all: CMakeFiles/crud_smoke.dir/all
 all: CMakeFiles/crudtest.dir/all
+all: CMakeFiles/api_checker.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -74,8 +76,10 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/uukOJ.dir/clean
+clean: CMakeFiles/uuk_judger.dir/clean
 clean: CMakeFiles/crud_smoke.dir/clean
 clean: CMakeFiles/crudtest.dir/clean
+clean: CMakeFiles/api_checker.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -85,7 +89,7 @@ clean: CMakeFiles/crudtest.dir/clean
 CMakeFiles/uukOJ.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uukOJ.dir/build.make CMakeFiles/uukOJ.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uukOJ.dir/build.make CMakeFiles/uukOJ.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=5,6 "Built target uukOJ"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=7,8 "Built target uukOJ"
 .PHONY : CMakeFiles/uukOJ.dir/all
 
 # Build rule for subdir invocation for target.
@@ -105,13 +109,39 @@ CMakeFiles/uukOJ.dir/clean:
 .PHONY : CMakeFiles/uukOJ.dir/clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/uuk_judger.dir
+
+# All Build rule for target.
+CMakeFiles/uuk_judger.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uuk_judger.dir/build.make CMakeFiles/uuk_judger.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uuk_judger.dir/build.make CMakeFiles/uuk_judger.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=9,10 "Built target uuk_judger"
+.PHONY : CMakeFiles/uuk_judger.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/uuk_judger.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/uuk_judger.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 0
+.PHONY : CMakeFiles/uuk_judger.dir/rule
+
+# Convenience name for target.
+uuk_judger: CMakeFiles/uuk_judger.dir/rule
+.PHONY : uuk_judger
+
+# clean rule for target.
+CMakeFiles/uuk_judger.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uuk_judger.dir/build.make CMakeFiles/uuk_judger.dir/clean
+.PHONY : CMakeFiles/uuk_judger.dir/clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/crud_smoke.dir
 
 # All Build rule for target.
 CMakeFiles/crud_smoke.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/crud_smoke.dir/build.make CMakeFiles/crud_smoke.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=1,2 "Built target crud_smoke"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=3,4 "Built target crud_smoke"
 .PHONY : CMakeFiles/crud_smoke.dir/all
 
 # Build rule for subdir invocation for target.
@@ -137,7 +167,7 @@ CMakeFiles/crud_smoke.dir/clean:
 CMakeFiles/crudtest.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=3,4 "Built target crudtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=5,6 "Built target crudtest"
 .PHONY : CMakeFiles/crudtest.dir/all
 
 # Build rule for subdir invocation for target.
@@ -155,6 +185,32 @@ crudtest: CMakeFiles/crudtest.dir/rule
 CMakeFiles/crudtest.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/clean
 .PHONY : CMakeFiles/crudtest.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/api_checker.dir
+
+# All Build rule for target.
+CMakeFiles/api_checker.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/api_checker.dir/build.make CMakeFiles/api_checker.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/api_checker.dir/build.make CMakeFiles/api_checker.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles --progress-num=1,2 "Built target api_checker"
+.PHONY : CMakeFiles/api_checker.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/api_checker.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/api_checker.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles 0
+.PHONY : CMakeFiles/api_checker.dir/rule
+
+# Convenience name for target.
+api_checker: CMakeFiles/api_checker.dir/rule
+.PHONY : api_checker
+
+# clean rule for target.
+CMakeFiles/api_checker.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/api_checker.dir/build.make CMakeFiles/api_checker.dir/clean
+.PHONY : CMakeFiles/api_checker.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

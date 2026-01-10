@@ -307,6 +307,15 @@ CPACK_SOURCE_TZ:BOOL=ON
 //Enable to build ZIP source packages
 CPACK_SOURCE_ZIP:BOOL=OFF
 
+//Path to a library.
+HIREDIS_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libhiredis.so
+
+//Path to a file.
+REDIS_PLUS_PLUS_INCLUDE_DIR:PATH=/usr/local/include
+
+//Path to a library.
+REDIS_PLUS_PLUS_LIBRARY:FILEPATH=/usr/local/lib/libredis++.so
+
 //Value Computed by CMake
 bcrypt_BINARY_DIR:STATIC=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/libbcrypt
 
@@ -427,6 +436,8 @@ CMAKE_GENERATOR_INSTANCE:INTERNAL=
 CMAKE_GENERATOR_PLATFORM:INTERNAL=
 //Name of generator toolset.
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
+//Test CMAKE_HAVE_LIBC_PTHREAD
+CMAKE_HAVE_LIBC_PTHREAD:INTERNAL=1
 //Source directory with the top level CMakeLists.txt file for this
 // project
 CMAKE_HOME_DIRECTORY:INTERNAL=/home/yuuuki/MyProject/vscode/cpp/uuk-OJ
@@ -538,6 +549,8 @@ CPACK_SOURCE_TXZ-ADVANCED:INTERNAL=1
 CPACK_SOURCE_TZ-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CPACK_SOURCE_ZIP
 CPACK_SOURCE_ZIP-ADVANCED:INTERNAL=1
+//Details about finding Threads
+FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //linker supports push/pop state
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 //CMAKE_INSTALL_PREFIX during last run

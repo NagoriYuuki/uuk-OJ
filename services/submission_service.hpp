@@ -29,6 +29,11 @@ public:
         return sm.update(submission);
     }
 
+    bool updateStatus(const Submission&sub)
+    {
+        return sm.updateStatus(sub);
+    }
+
     bool remove(const int id)
     {
         return sm.remove(id);

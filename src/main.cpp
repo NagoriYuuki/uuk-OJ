@@ -7,6 +7,12 @@
 #include "db_pool.hpp"
 
 #include "user_mapper.hpp"
+
+#pragma push_macro("DELETE")
+#undef DELETE
+#include "httplib.h"
+#pragma pop_macro("DELETE")
+
 #include "../services/problem_service.hpp"
 #include "../entities/problem.hpp"
 #include "../services/auth_service.hpp"
@@ -23,7 +29,6 @@ signed main(void)
     CROW_ROUTE(app, "/")
     ([]()
      { return "Hello, uuk-OJ!"; });
-
 
     CROW_ROUTE(app, "/api/auth/login")
         .methods(crow::HTTPMethod::POST)(
@@ -517,22 +522,45 @@ signed main(void)
                 return crow::response(200, res);
             });
 
+    auto send_judge_request = [](const Submission &sub, const Problem &problem)
+    {
+        std::thread([sub, problem]()
+                    {
+        httplib::Client main_client("localhost", 18081);
+
+        main_client.set_connection_timeout(3);
+
+        crow::json::wvalue req_json;
+        req_json["submission_id"] = sub.id;
+        req_json["problem_id"] = sub.problem_id;
+        req_json["language"] = sub.language;
+        req_json["code"] = sub.code;
+        req_json["time_limit"] = problem.time_limit;
+        req_json["mem_limit"] = problem.mem_limit;
+        req_json["tc_path"] = problem.tc_path;
+        auto res = main_client.Post("/rpc/judge", req_json.dump(), "application/json");
+
+        if (!res || res->status != 200)
+            std::cerr << "Failed to send judge request for submission" << " " << sub.id << std::endl; })
+            .detach();
+    };
+
     CROW_ROUTE(app, "/api/submit/new")
         .methods(crow::HTTPMethod::POST)(
             [&](const crow::request &req)
             {
                 auto conn = DBPool::instance().getConnection();
                 auto &con = *conn;
-                auto &ctx = app.get_context<AuthMiddleware>(req);
+                // auto &ctx = app.get_context<AuthMiddleware>(req);
                 crow::json::wvalue res;
-                if (!ctx.userid.has_value())
-                {
-                    res["code"] = 401;
-                    res["message"] = "Unlogged nya~";
-                    return crow::response(401, res);
-                }
+                // if (!ctx.userid.has_value())
+                // {
+                //     res["code"] = 401;
+                //     res["message"] = "Unlogged nya~";
+                //     return crow::response(401, res);
+                // }
                 auto json = crow::json::load(req.body);
-                if (!json || !json.has("problem_id") || !json.has("language") || !json.has("code"))
+                if (!json || !json.has("problem_id") || !json.has("language") || !json.has("code") || !json.has("user_id"))
                 {
                     res["code"] = 400;
                     res["message"] = "Invalid submission data nya~";
@@ -542,26 +570,77 @@ signed main(void)
                 Submission submission;
 
                 submission.problem_id = json["problem_id"].i();
-                submission.user_id = ctx.userid.value();
+                // submission.user_id = ctx.userid.value();
+                submission.user_id = json["user_id"].i();
                 submission.language = std::string(json["language"].s());
                 submission.code = std::string(json["code"].s());
-                submission.status = "Pending";
+                submission.status = "Submitted";
                 submission.detail = "";
                 submission.submit_time = "";
                 submission.time_cost = 0;
                 submission.mem_cost = 0;
                 SubmissionService ss(con);
                 auto new_id = ss.create(submission);
+
                 if (!new_id.has_value())
                 {
                     res["code"] = 500;
                     res["message"] = "Failed to submit nya~";
                     return crow::response(500, res);
                 }
+                submission.id = new_id.value();
+
+                ProblemService ps(con);
+
+                auto problem = ps.getById(submission.problem_id);
+                if (!problem.has_value())
+                {
+                    res["code"] = 404;
+                    res["message"] = "Problem not found nya~";
+                    return crow::response(404, res);
+                }
+
+                send_judge_request(submission, problem.value());
+
                 res["code"] = 200;
                 res["new_id"] = new_id.value();
-                res["message"] = "Submit successful nya~";
+                res["message"] = "Submittd successful nya~";
                 return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/rpc/callback")
+        .methods(crow::HTTPMethod::POST)(
+            [&](const crow::request &req)
+            {
+                auto json = crow::json::load(req.body);
+                if (!json)
+                    return crow::response(400, "Invalid callback data nya~");
+                i64 submission_id = static_cast<i64>(json["submission_id"].i());
+                std::string status = std::string(json["status"].s());
+                std::string detail = std::string(json["detail"].s());
+                int time_cost = static_cast<int>(json.has("time_cost") ? json["time_cost"].i() : 0);
+                i64 mem_cost = static_cast<i64>(json.has("mem_cost") ? json["mem_cost"].i() : 0);
+
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
+                SubmissionService ss(con);
+                Submission submission(
+                    submission_id,
+                    0,
+                    0,
+                    "",
+                    "",
+                    status,
+                    detail,
+                    "",
+                    static_cast<int>(time_cost),
+                    static_cast<int>(mem_cost));
+                if (!ss.updateStatus(submission))
+                {
+                    std::cerr << "Callback update failed for submission " << submission_id << std::endl;
+                    return crow::response(500, "Failed to update submission nya~");
+                }
+                return crow::response(200, "Callback processed successfully nya~");
             });
 
     CROW_ROUTE(app, "/api/submit/<int>")
@@ -638,12 +717,6 @@ signed main(void)
                 }
                 return crow::response(200, res);
             });
-
-    // CROW_ROUTE(app, "/api/submit/problem/<int>/new")
-    //     .methods(crow::HTTPMethod::POST)(
-    //         [&](const crow::request &req, int problem_id) {
-
-    //         });
 
     app.port(18080)
         .multithreaded()

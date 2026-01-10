@@ -38,7 +38,7 @@ public:
         try
         {
             auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                "UPDATE submissions SET (problem_id, user_id, language, code, status, detail, time_cost, mem_cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?) WHERE id = ?"));
+                "UPDATE submissions SET problem_id = ?, user_id = ?, language = ?, code = ?, status = ?, detail = ?, time_cost = ?, mem_cost = ? WHERE id = ?"));
             stmPtr->setInt(1, submission.problem_id);
             stmPtr->setInt(2, submission.user_id);
             stmPtr->setString(3, submission.language);
@@ -57,6 +57,28 @@ public:
             return false;
         }
     }
+
+    bool updateStatus(const Submission &sub)
+    {
+        try
+        {
+            auto stmPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "UPDATE submissions SET status = ?, detail = ?, time_cost = ?, mem_cost = ? WHERE id = ?"));
+            stmPtr->setString(1, sub.status);
+            stmPtr->setString(2, sub.detail);
+            stmPtr->setInt(3, sub.time_cost);
+            stmPtr->setInt(4, sub.mem_cost);
+            stmPtr->setInt(5, sub.id);
+            stmPtr->executeUpdate();
+            return true;
+        }
+        catch (sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in updateStatus Submission: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
     bool remove(int id) override
     {
         try

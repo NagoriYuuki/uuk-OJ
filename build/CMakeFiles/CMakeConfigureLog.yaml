@@ -546,3 +546,41 @@ events:
       warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles/CMakeScratch/TryCompile-ZlaDZD"
+      binary: "/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles/CMakeScratch/TryCompile-ZlaDZD"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles/CMakeScratch/TryCompile-ZlaDZD'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_27233/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_27233.dir/build.make CMakeFiles/cmTC_27233.dir/build
+        gmake[1]: Entering directory '/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles/CMakeScratch/TryCompile-ZlaDZD'
+        Building C object CMakeFiles/cmTC_27233.dir/src.c.o
+        /usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_27233.dir/src.c.o -c /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles/CMakeScratch/TryCompile-ZlaDZD/src.c
+        Linking C executable cmTC_27233
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_27233.dir/link.txt --verbose=1
+        /usr/bin/cc CMakeFiles/cmTC_27233.dir/src.c.o -o cmTC_27233 
+        gmake[1]: Leaving directory '/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/build/CMakeFiles/CMakeScratch/TryCompile-ZlaDZD'
+        
+      exitCode: 0
+...

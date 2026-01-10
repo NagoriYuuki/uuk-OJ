@@ -150,6 +150,19 @@ uukOJ/fast:
 .PHONY : uukOJ/fast
 
 #=============================================================================
+# Target rules for targets named uuk_judger
+
+# Build rule for target.
+uuk_judger: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 uuk_judger
+.PHONY : uuk_judger
+
+# fast build rule for target.
+uuk_judger/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uuk_judger.dir/build.make CMakeFiles/uuk_judger.dir/build
+.PHONY : uuk_judger/fast
+
+#=============================================================================
 # Target rules for targets named crud_smoke
 
 # Build rule for target.
@@ -174,6 +187,43 @@ crudtest: cmake_check_build_system
 crudtest/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/crudtest.dir/build.make CMakeFiles/crudtest.dir/build
 .PHONY : crudtest/fast
+
+#=============================================================================
+# Target rules for targets named api_checker
+
+# Build rule for target.
+api_checker: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 api_checker
+.PHONY : api_checker
+
+# fast build rule for target.
+api_checker/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/api_checker.dir/build.make CMakeFiles/api_checker.dir/build
+.PHONY : api_checker/fast
+
+src/api_checker.o: src/api_checker.cpp.o
+.PHONY : src/api_checker.o
+
+# target to build an object file
+src/api_checker.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/api_checker.dir/build.make CMakeFiles/api_checker.dir/src/api_checker.cpp.o
+.PHONY : src/api_checker.cpp.o
+
+src/api_checker.i: src/api_checker.cpp.i
+.PHONY : src/api_checker.i
+
+# target to preprocess a source file
+src/api_checker.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/api_checker.dir/build.make CMakeFiles/api_checker.dir/src/api_checker.cpp.i
+.PHONY : src/api_checker.cpp.i
+
+src/api_checker.s: src/api_checker.cpp.s
+.PHONY : src/api_checker.s
+
+# target to generate assembly for a file
+src/api_checker.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/api_checker.dir/build.make CMakeFiles/api_checker.dir/src/api_checker.cpp.s
+.PHONY : src/api_checker.cpp.s
 
 src/crud_smoke.o: src/crud_smoke.cpp.o
 .PHONY : src/crud_smoke.o
@@ -247,6 +297,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uukOJ.dir/build.make CMakeFiles/uukOJ.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/uuk-judger/src/main.o: src/uuk-judger/src/main.cpp.o
+.PHONY : src/uuk-judger/src/main.o
+
+# target to build an object file
+src/uuk-judger/src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uuk_judger.dir/build.make CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o
+.PHONY : src/uuk-judger/src/main.cpp.o
+
+src/uuk-judger/src/main.i: src/uuk-judger/src/main.cpp.i
+.PHONY : src/uuk-judger/src/main.i
+
+# target to preprocess a source file
+src/uuk-judger/src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uuk_judger.dir/build.make CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.i
+.PHONY : src/uuk-judger/src/main.cpp.i
+
+src/uuk-judger/src/main.s: src/uuk-judger/src/main.cpp.s
+.PHONY : src/uuk-judger/src/main.s
+
+# target to generate assembly for a file
+src/uuk-judger/src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uuk_judger.dir/build.make CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.s
+.PHONY : src/uuk-judger/src/main.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -257,9 +331,14 @@ help:
 	@echo "... package"
 	@echo "... package_source"
 	@echo "... rebuild_cache"
+	@echo "... api_checker"
 	@echo "... crud_smoke"
 	@echo "... crudtest"
 	@echo "... uukOJ"
+	@echo "... uuk_judger"
+	@echo "... src/api_checker.o"
+	@echo "... src/api_checker.i"
+	@echo "... src/api_checker.s"
 	@echo "... src/crud_smoke.o"
 	@echo "... src/crud_smoke.i"
 	@echo "... src/crud_smoke.s"
@@ -269,6 +348,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/uuk-judger/src/main.o"
+	@echo "... src/uuk-judger/src/main.i"
+	@echo "... src/uuk-judger/src/main.s"
 .PHONY : help
 
 
