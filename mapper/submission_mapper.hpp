@@ -4,6 +4,8 @@
 #include "../include/db.hpp"
 
 #include <memory>
+#include <vector>
+#include <set>
 
 class SubmissionMapper : public BaseMapper<Submission>
 {
@@ -193,6 +195,81 @@ public:
         catch (const sql::SQLException &e)
         {
             std::cerr << "SQL Error in findByProblemId Submission: " << e.what() << std::endl;
+            return std::nullopt;
+        }
+    }
+
+    std::optional<std::pair<std::vector<Submission>, std::vector<int>>> findByUserId(const int user_id)
+    {
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost FROM submissions WHERE user_id = ? ORDER BY id DESC"));
+            stmtPtr->setInt(1, user_id);
+            std::vector<Submission> vec;
+            std::vector<int> arr;
+
+            auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            while (resPtr->next())
+            {
+                Submission submission(
+                    resPtr->getInt64("id"),
+                    resPtr->getInt("problem_id"),
+                    resPtr->getInt("user_id"),
+                    std::string(resPtr->getString("language").c_str()),
+                    std::string(resPtr->getString("code").c_str()),
+                    std::string(resPtr->getString("status").c_str()),
+                    std::string(resPtr->getString("detail").c_str()),
+                    std::string(resPtr->getString("submit_time").c_str()),
+                    resPtr->getInt("time_cost"),
+                    resPtr->getInt("mem_cost"));
+                vec.push_back(submission);
+                if (submission.status == "Accepted")
+                    arr.push_back(resPtr->getInt("problem_id"));
+            }
+            std::set<int> st(arr.begin(), arr.end());
+            arr.assign(st.begin(), st.end());
+            return std::make_pair(vec, arr);
+        }
+        catch (const sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in findByUserId Submission: " << e.what() << std::endl;
+            return std::nullopt;
+        }
+    }
+
+    std::optional<std::vector<Submission>> findByProblemIdAndUserId(const int problem_id, const int user_id, int limit = 50, int offset = 0)
+    {
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "SELECT id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost FROM submissions WHERE problem_id = ? AND user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?"));
+            stmtPtr->setInt(1, problem_id);
+            stmtPtr->setInt(2, user_id);
+            stmtPtr->setInt(3, limit);
+            stmtPtr->setInt(4, offset);
+            std::vector<Submission> vec;
+            auto resPtr = std::unique_ptr<sql::ResultSet>(stmtPtr->executeQuery());
+            while (resPtr->next())
+            {
+                Submission submission(
+                    resPtr->getInt64("id"),
+                    resPtr->getInt("problem_id"),
+                    resPtr->getInt("user_id"),
+                    std::string(resPtr->getString("language").c_str()),
+                    std::string(resPtr->getString("code").c_str()),
+                    std::string(resPtr->getString("status").c_str()),
+                    std::string(resPtr->getString("detail").c_str()),
+                    std::string(resPtr->getString("submit_time").c_str()),
+                    resPtr->getInt("time_cost"),
+                    resPtr->getInt("mem_cost"));
+                vec.push_back(submission);
+            }
+            return vec;
+        }
+        catch (const sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in findByProblemIdAndUserId Submission: " << e.what() << std::endl;
             return std::nullopt;
         }
     }

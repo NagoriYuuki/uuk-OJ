@@ -702,20 +702,114 @@ signed main(void)
                 }
                 crow::json::wvalue res = crow::json::wvalue::list();
                 std::size_t idx = 0;
-                for (const auto &i : vec.value())
+                auto arr = vec.value();
+                for (const auto [id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost] : arr)
                 {
                     crow::json::wvalue item;
-                    item["id"] = i.id;
-                    item["problem_id"] = i.problem_id;
-                    item["user_id"] = i.user_id;
-                    item["language"] = i.language;
-                    item["status"] = i.status;
-                    item["submit_time"] = i.submit_time;
-                    item["time_cost"] = i.time_cost;
-                    item["mem_cost"] = i.mem_cost;
+                    item["id"] = id;
+                    item["problem_id"] = problem_id;
+                    item["user_id"] = user_id;
+                    item["language"] = language;
+                    item["status"] = status;
+                    item["submit_time"] = submit_time;
+                    item["time_cost"] = time_cost;
+                    item["mem_cost"] = mem_cost;
+                    res[idx++] = std::move(item);
+                }
+
+                return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/submit/problem/<int>/user/<int>")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req, int problem_id, int user_id)
+            {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
+                SubmissionService ss(con);
+                auto vec = ss.findByProblemIdAndUserId(problem_id, user_id);
+                if (!vec.has_value())
+                {
+                    crow::json::wvalue res;
+                    res["code"] = 500;
+                    res["message"] = "No submissions found nya~";
+                    return crow::response(500, res);
+                }
+
+                crow::json::wvalue res = crow::json::wvalue::list();
+                std::size_t idx = 0;
+
+                auto arr = vec.value();
+                for (const auto [id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost] : arr)
+                {
+                    crow::json::wvalue item;
+                    item["id"] = id;
+                    item["problem_id"] = problem_id;
+                    item["user_id"] = user_id;
+                    item["language"] = language;
+                    item["status"] = status;
+                    item["submit_time"] = submit_time;
+                    item["time_cost"] = time_cost;
+                    item["mem_cost"] = mem_cost;
                     res[idx++] = std::move(item);
                 }
                 return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/user/<int>")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req, int user_id)
+            {
+                auto conn = DBPool::instance().getConnection();
+                auto &con = *conn;
+                UserService us(con);
+                auto user = us.getById(user_id);
+                if (!user.has_value())
+                {
+                    crow::json::wvalue res;
+                    res["code"] = 404;
+                    res["message"] = "User not found nya~";
+                    return crow::response(404, res);
+                }
+
+                SubmissionService ss(con);
+                auto result = ss.findByUserId(user_id);
+                if (!result.has_value())
+                {
+                    crow::json::wvalue res;
+                    res["code"] = 500;
+                    res["message"] = "Failed to query submissions nya~";
+                    return crow::response(500, res);
+                }
+                auto [sub, ac] = result.value();
+                crow::json::wvalue res;
+                res["id"] = user->id;
+                res["username"] = user->username;
+                res["role"] = user->role;
+                res["sub"] = sub.size();
+                res["ac_count"] = ac.size();
+                crow::json::wvalue sub_list = crow::json::wvalue::list();
+                std::size_t idx = 0;
+                for(const auto& [id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost] : sub)
+                {
+                    crow::json::wvalue item;
+                    item["id"] = id;
+                    item["problem_id"] = problem_id;
+                    item["user_id"] = user_id;
+                    item["language"] = language;
+                    item["status"] = status;
+                    item["submit_time"] = submit_time;
+                    item["time_cost"] = time_cost;
+                    item["mem_cost"] = mem_cost;
+                    sub_list[idx++] = std::move(item);
+                }
+                res["submissions"] = std::move(sub_list);
+                res["ac_problems"] = crow::json::wvalue::list();
+                idx = 0;
+                for(const auto& i : ac)
+                    res["ac_problems"][idx++] = i;
+                return crow::response(200, res);
+
             });
 
     app.port(18080)

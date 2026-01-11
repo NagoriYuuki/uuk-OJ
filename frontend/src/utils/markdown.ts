@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it'
-import mk from 'markdown-it-katex'
+import mk from '@iktakahiro/markdown-it-katex';
 import DOMPurify from 'isomorphic-dompurify'
 
 // 初始化 markdown-it配置

@@ -49,6 +49,16 @@ public:
         return sm.findByProblemId(problem_id, limit, offset);
     }
 
+    std::optional<std::pair<std::vector<Submission>, std::vector<int>>> findByUserId(const int user_id)
+    {
+        return sm.findByUserId(user_id);
+    }
+
+    std::optional<std::vector<Submission>> findByProblemIdAndUserId(const int problem_id, const int user_id, int limit = 50, int offset = 0)
+    {
+        return sm.findByProblemIdAndUserId(problem_id, user_id, limit, offset);
+    }
+
 private:
     sql::Connection &con;
     SubmissionMapper sm;

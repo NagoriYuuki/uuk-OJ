@@ -45,9 +45,12 @@ TaskInfo parse_task(const std::string &task_str)
         json.has("tc_path") ? std::string(json["tc_path"].s()) : std::string{}};
 }
 
-void report_progress(const i64 &sub_id, const int &tc_id)
+void report_progress(const i64 &sub_id, const int &tc_id, const int &tc_total)
 {
     std::string str = "Running on Test# " + std::to_string(tc_id);
+    if (tc_total > 0)
+        str += "/" + std::to_string(tc_total);
+
     crow::json::wvalue json;
     json["submission_id"] = sub_id;
     json["status"] = "Running";
@@ -57,9 +60,21 @@ void report_progress(const i64 &sub_id, const int &tc_id)
 
     httplib::Client client("localhost", 18080);
     client.set_connection_timeout(3);
-    auto res = client.Post("/rpc/callback", json.dump(), "application/json");
-    // if (!res)
-    //     std::cerr << "Failed to report progress for submission " << sub_id << "on Test# " << tc_id << std::endl;
+    client.Post("/rpc/callback", json.dump(), "application/json");
+}
+
+void report_compiling(const i64 &sub_id)
+{
+    crow::json::wvalue json;
+    json["submission_id"] = sub_id;
+    json["status"] = "Compiling";
+    json["detail"] = "Compiling...";
+    json["time_cost"] = 0;
+    json["mem_cost"] = 0;
+
+    httplib::Client client("localhost", 18080);
+    client.set_connection_timeout(3);
+    client.Post("/rpc/callback", json.dump(), "application/json");
 }
 
 void callback_final_res(const JudgeResult &result)
@@ -116,6 +131,10 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                            0,
                            0);
 
+        std::thread([sid = task_info.submission_id]()
+                    { report_compiling(sid); })
+            .detach();
+
         int compile_res = system(compile_cmd.str().c_str());
         if (compile_res != 0)
         {
@@ -151,9 +170,8 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
         result.mem_cost = 0;
         for (int i = 1; i <= testcases; i++)
         {
-            // report_progress(task_info.submission_id, i);
-            std::thread([sid = task_info.submission_id, idx = i]()
-                        { report_progress(sid, idx); })
+            std::thread([sid = task_info.submission_id, idx = i, total = testcases]()
+                        { report_progress(sid, idx, total); })
                 .detach();
 
             const std::string input_file = data_path + "/data" + std::to_string(i) + ".in";
@@ -165,7 +183,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                 result.detail = "Input file missing for Test #" + std::to_string(i);
                 break;
             }
-            
+
             config.input_path = input_file;
             config.output_path = work_path + "/user_output.txt";
             Container container(config);

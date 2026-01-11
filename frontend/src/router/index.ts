@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
 import ProblemList from '../views/ProblemList.vue'
 import ProblemDetail from '../views/ProblemDetail.vue'
+import ProblemSubmit from '../views/ProblemSubmit.vue'
 import Login from '../views/login.vue'
 import Register from '../views/register.vue'
 import ProblemManage from '../views/admin/problems.vue'
@@ -10,6 +11,8 @@ import UserManage from '../views/admin/users.vue'
 import ProblemForm from '../views/admin/problemForm.vue'
 import Submissions from '../views/Submissions.vue'
 import SubmissionDetail from '../views/SubmissionDetail.vue'
+import UserProfile from '../views/UserProfile.vue'
+import Me from '../views/Me.vue'
 
 import { authState, refreshUserInfo } from '../utils/auth'
 
@@ -27,9 +30,27 @@ const router = createRouter({
             component: ProblemDetail,
             props: (route) => ({ id: Number(route.params.id) }),
         },
+        {
+            path: '/problems/:id(\\d+)/submit',
+            name: 'problem-submit',
+            component: ProblemSubmit,
+            props: (route) => ({ id: Number(route.params.id) }),
+            meta: { requiresAuth: true },
+        },
         { path: '/login', name: 'login', component: Login },
         { path: '/register', name: 'register', component: Register },
         { path: '/submissions', name: 'submissions', component: Submissions },
+        {
+            path: '/u/:id(\\d+)',
+            name: 'user-profile',
+            component: UserProfile,
+        },
+        {
+            path: '/me',
+            name: 'me',
+            component: Me,
+            meta: { requiresAuth: true },
+        },
         {
             path: '/submissions/:id(\\d+)',
             name: 'submission-detail',
