@@ -45,6 +45,15 @@ TaskInfo parse_task(const std::string &task_str)
         json.has("tc_path") ? std::string(json["tc_path"].s()) : std::string{}};
 }
 
+void copy_testcase(const std::string &src, const std::string &dir)
+{
+    std::ifstream fin(src, std::ios::binary);
+    std::ofstream fout(dir, std::ios::binary);
+    fout << fin.rdbuf();
+    fin.close();
+    fout.close();
+}
+
 void report_progress(const i64 &sub_id, const int &tc_id, const int &tc_total)
 {
     std::string str = "Running on Test# " + std::to_string(tc_id);
@@ -106,9 +115,16 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
             continue;
         }
         auto task_info = parse_task(task_opt.value());
-        std::string work_path = "../workspace/task" + std::to_string(task_info.submission_id);
+        std::string work_path = std::filesystem::absolute("../workspace/task" + std::to_string(task_info.submission_id)).string();
+
         std::filesystem::remove_all(work_path);
         std::filesystem::create_directory(work_path);
+        std::filesystem::create_directory(work_path + "/proc");
+
+        std::filesystem::permissions(
+            work_path,
+            std::filesystem::perms::all,
+            std::filesystem::perm_options::replace);
 
         std::string code_path = work_path + "/code.cpp";
         std::string exe_path = work_path + "/exe";
@@ -116,9 +132,10 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
         std::ofstream fout(code_path);
         fout << task_info.code;
         fout.close();
+
         std::string complie_log_path = work_path + "/compile_log.log";
         std::stringstream compile_cmd;
-        compile_cmd << "g++ " << code_path << " -o " << exe_path << " -O2 -std=c++23 -Wall -lm -static -DONLINE_JUDGE" << " 2> " << complie_log_path;
+        compile_cmd << "g++ " << code_path << " -o " << exe_path << " -O2 -std=c++23 -Wall -lm -static -DONLINE_JUDGE -w" << " 2> " << complie_log_path;
 
         JudgeResult result(task_info.submission_id,
                            task_info.problem_id,
@@ -157,9 +174,13 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
         }
 
         Config config;
-        config.code_path = exe_path;
+        config.code_path = "/exe";
         config.time_limit = task_info.time_limit;
         config.mem_limit = task_info.mem_limit;
+        config.input_path = "/data.in";
+        config.output_path = "/user_output.txt";
+        config.work_dir = work_path;
+
         std::string data_path = "data/problems/p" + std::to_string(task_info.problem_id);
         int testcases = 0;
         const std::filesystem::path data_dir(data_path);
@@ -176,6 +197,9 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
 
             const std::string input_file = data_path + "/data" + std::to_string(i) + ".in";
             const std::string output_file = data_path + "/data" + std::to_string(i) + ".out";
+            const std::string user_output_file = work_path + "/user_output.txt";
+
+            copy_testcase(input_file, work_path + "/data.in");
 
             if (!std::filesystem::exists(input_file))
             {
@@ -184,8 +208,6 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                 break;
             }
 
-            config.input_path = input_file;
-            config.output_path = work_path + "/user_output.txt";
             Container container(config);
 
             auto process_info = container.start();
@@ -220,7 +242,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                 break;
             }
 
-            bool judge_res = AnsChecker::check(output_file, config.output_path);
+            bool judge_res = AnsChecker::check(user_output_file, output_file);
             if (!judge_res)
             {
                 result.status = "Wrong Answer";

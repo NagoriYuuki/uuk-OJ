@@ -46,6 +46,11 @@ public:
 	// 	return pm.countSub(id);
 	// }
 
+	bool updateStat(const int id, const bool is_ac)
+	{
+		return pm.updateStat(id, is_ac);
+	}
+
 private:
 	sql::Connection &con;
 	ProblemMapper pm;

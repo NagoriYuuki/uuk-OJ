@@ -17,6 +17,8 @@ public:
     {
         try
         {
+            std::cerr << "insert problem: " << problem.ac_count << " " << problem.sub_count << std::endl;
+
             auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(
                 con.prepareStatement(
                     "INSERT INTO problems (title, time_limit, mem_limit, description, sample_input, sample_output, tc_path, sub_count, ac_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"));
@@ -46,7 +48,7 @@ public:
         try
         {
             auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
-                    "UPDATE problems SET title = ?, time_limit = ?, mem_limit = ?, description = ?, sample_input = ?, sample_output = ?, tc_path = ?, sub_count = ?, ac_count = ? WHERE id = ?"));
+                "UPDATE problems SET title = ?, time_limit = ?, mem_limit = ?, description = ?, sample_input = ?, sample_output = ?, tc_path = ?, sub_count = ?, ac_count = ? WHERE id = ?"));
             stmtPtr->setString(1, problem.title);
             stmtPtr->setInt(2, problem.time_limit);
             stmtPtr->setInt(3, problem.mem_limit);
@@ -102,9 +104,9 @@ public:
                 std::string(resPtr->getString("sample_input").c_str()),
                 std::string(resPtr->getString("sample_output").c_str()),
                 std::string(resPtr->getString("created_time").c_str()),
-                std::string(resPtr->getString("tc_path").c_str()));
-            resPtr->getInt64("sub_count");
-            resPtr->getInt64("ac_count");
+                std::string(resPtr->getString("tc_path").c_str()),
+                resPtr->getInt64("sub_count"),
+                resPtr->getInt64("ac_count"));
             return problem;
         }
         catch (sql::SQLException &e)
@@ -134,9 +136,10 @@ public:
                     std::string(resPtr->getString("sample_input").c_str()),
                     std::string(resPtr->getString("sample_output").c_str()),
                     std::string(resPtr->getString("created_time").c_str()),
-                    std::string(resPtr->getString("tc_path").c_str()));
-                resPtr->getInt64("sub_count");
-                resPtr->getInt64("ac_count");
+                    std::string(resPtr->getString("tc_path").c_str()),
+                    resPtr->getInt64("sub_count"),
+                    resPtr->getInt64("ac_count"));
+
                 vec.push_back(problem);
             }
             return vec;
@@ -146,6 +149,25 @@ public:
             std::cerr << "SQL Error in listAll Problems: " << e.what() << std::endl;
         }
         return std::nullopt;
+    }
+
+    bool updateStat(const int id, const bool is_ac)
+    {
+        try
+        {
+            auto stmtPtr = std::unique_ptr<sql::PreparedStatement>(con.prepareStatement(
+                "UPDATE problems SET sub_count = sub_count + ?, ac_count  = ac_count + ? WHERE id = ?"));
+            stmtPtr->setInt64(1, is_ac ? 0 : 1);
+            stmtPtr->setInt64(2, is_ac ? 1 : 0);
+            stmtPtr->setInt(3, id);
+            stmtPtr->executeUpdate();
+            return true;
+        }
+        catch (sql::SQLException &e)
+        {
+            std::cerr << "SQL Error in updateStat Problem: " << e.what() << std::endl;
+            return false;
+        }
     }
 
     // std::pair<i64, i64> countSub(int id)

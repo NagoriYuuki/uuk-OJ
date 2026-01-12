@@ -7,11 +7,11 @@
     <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap:wrap;">
       <h1 style="margin: 6px 0 10px;">提交 #{{ id }}</h1>
       <div style="display:flex; gap: 10px; align-items:center;">
-        <label style="display:flex; gap:6px; align-items:center;" class="muted">
+        <!-- <label style="display:flex; gap:6px; align-items:center;" class="muted">
           <input type="checkbox" v-model="autoRefresh" />
           自动刷新
         </label>
-        <button @click="load" :disabled="loading">{{ loading ? '加载中…' : '刷新' }}</button>
+        <button @click="load" :disabled="loading">{{ loading ? '加载中…' : '刷新' }}</button> -->
       </div>
     </div>
 
@@ -270,12 +270,13 @@ function startTimer() {
   if (timer != null) return
   timer = window.setInterval(async () => {
     if (!autoRefresh.value) return
+    if (loading.value) return
     if (!sub.value) {
       await load()
       return
     }
     if (shouldKeepRefreshing(sub.value.status)) await load()
-  }, 1200)
+  }, 100)
 }
 
 function stopTimer() {

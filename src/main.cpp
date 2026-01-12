@@ -219,6 +219,7 @@ signed main(void)
                 problem.sample_output = json.has("sample_output") ? std::string(json["sample_output"].s()) : std::string{};
                 problem.tc_path = json.has("tc_path") ? std::string(json["tc_path"].s()) : std::string{};
                 ProblemService ps(con);
+                std::cerr << "asd: " << problem.ac_count << " " << problem.sub_count << std::endl;
                 auto new_id = ps.create(problem);
                 if (!new_id.has_value())
                 {
@@ -551,14 +552,14 @@ signed main(void)
             {
                 auto conn = DBPool::instance().getConnection();
                 auto &con = *conn;
-                // auto &ctx = app.get_context<AuthMiddleware>(req);
+                auto &ctx = app.get_context<AuthMiddleware>(req);
                 crow::json::wvalue res;
-                // if (!ctx.userid.has_value())
-                // {
-                //     res["code"] = 401;
-                //     res["message"] = "Unlogged nya~";
-                //     return crow::response(401, res);
-                // }
+                if (!ctx.userid.has_value())
+                {
+                    res["code"] = 401;
+                    res["message"] = "Unlogged nya~";
+                    return crow::response(401, res);
+                }
                 auto json = crow::json::load(req.body);
                 if (!json || !json.has("problem_id") || !json.has("language") || !json.has("code") || !json.has("user_id"))
                 {
@@ -570,8 +571,8 @@ signed main(void)
                 Submission submission;
 
                 submission.problem_id = json["problem_id"].i();
-                // submission.user_id = ctx.userid.value();
-                submission.user_id = json["user_id"].i();
+                submission.user_id = ctx.userid.value();
+                // submission.user_id = json["user_id"].i();
                 submission.language = std::string(json["language"].s());
                 submission.code = std::string(json["code"].s());
                 submission.status = "Submitted";
@@ -582,6 +583,9 @@ signed main(void)
                 SubmissionService ss(con);
                 auto new_id = ss.create(submission);
 
+                ProblemService ps(con);
+                ps.updateStat(submission.problem_id, false);
+
                 if (!new_id.has_value())
                 {
                     res["code"] = 500;
@@ -589,8 +593,6 @@ signed main(void)
                     return crow::response(500, res);
                 }
                 submission.id = new_id.value();
-
-                ProblemService ps(con);
 
                 auto problem = ps.getById(submission.problem_id);
                 if (!problem.has_value())
@@ -604,7 +606,7 @@ signed main(void)
 
                 res["code"] = 200;
                 res["new_id"] = new_id.value();
-                res["message"] = "Submittd successful nya~";
+                res["message"] = "Submitted successful nya~";
                 return crow::response(200, res);
             });
 
@@ -635,6 +637,15 @@ signed main(void)
                     "",
                     static_cast<int>(time_cost),
                     static_cast<int>(mem_cost));
+                if (status == "Accepted")
+                {
+                    auto sub_opt = ss.getById(submission_id);
+                    if (sub_opt.has_value())
+                    {
+                        ProblemService ps(con);
+                        ps.updateStat(sub_opt->problem_id, true);
+                    }
+                }
                 if (!ss.updateStatus(submission))
                 {
                     std::cerr << "Callback update failed for submission " << submission_id << std::endl;
@@ -790,7 +801,7 @@ signed main(void)
                 res["ac_count"] = ac.size();
                 crow::json::wvalue sub_list = crow::json::wvalue::list();
                 std::size_t idx = 0;
-                for(const auto& [id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost] : sub)
+                for (const auto &[id, problem_id, user_id, language, code, status, detail, submit_time, time_cost, mem_cost] : sub)
                 {
                     crow::json::wvalue item;
                     item["id"] = id;
@@ -806,10 +817,9 @@ signed main(void)
                 res["submissions"] = std::move(sub_list);
                 res["ac_problems"] = crow::json::wvalue::list();
                 idx = 0;
-                for(const auto& i : ac)
+                for (const auto &i : ac)
                     res["ac_problems"][idx++] = i;
                 return crow::response(200, res);
-
             });
 
     app.port(18080)

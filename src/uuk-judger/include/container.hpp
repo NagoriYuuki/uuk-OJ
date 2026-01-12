@@ -19,6 +19,7 @@
 #include <chrono>
 #include <fstream>
 #include <sstream>
+#include <seccomp.h>
 
 using i64 = long long;
 
@@ -30,6 +31,7 @@ struct Config
     i64 mem_limit;
     std::string input_path;
     std::string output_path;
+    std::string work_dir;
 
     Config()
         : code_path(""),
@@ -37,19 +39,21 @@ struct Config
           time_limit(1000),
           mem_limit(65536),
           input_path(""),
-          output_path("") {}
+          output_path(""),
+          work_dir("") {}
     Config(const std::string &cp,
            const std::vector<std::string> &a,
            const int tl,
            const i64 ml,
            const std::string &ip,
-           const std::string &op)
+           const std::string &op, const std::string &wd)
         : code_path(cp),
           args(a),
           time_limit(tl),
           mem_limit(ml),
           input_path(ip),
-          output_path(op) {}
+          output_path(op),
+          work_dir(wd) {}
 };
 
 struct RunResult
@@ -228,6 +232,7 @@ private:
     {
         sethostname("ch_container", 12);
         setup_mounts();
+        setup_chroot();
         setup_io();
         setup_rlim();
 
@@ -236,6 +241,8 @@ private:
             perror("setuid/gid failed");
             _exit(1);
         }
+
+        // load_seccomp();
 
         execute_code();
     }
@@ -291,6 +298,30 @@ private:
         }
     }
 
+    void setup_chroot()
+    {
+        if (chdir(config.work_dir.c_str()))
+        {
+            perror("chdir failed");
+            _exit(1);
+        }
+        if (chroot("."))
+        {
+            perror("chroot failed");
+            _exit(1);
+        }
+        if (chdir("/") == -1)
+        {
+            perror("chdir / failed");
+            _exit(1);
+        }
+        if (mount("proc", "/proc", "proc", 0, NULL) == -1)
+        {
+            perror("mount proc failed");
+            _exit(1);
+        }
+    }
+
     void setup_rlim()
     {
         rlimit rl_cpu;
@@ -319,6 +350,15 @@ private:
             perror("setrlimit FSIZE failed");
             _exit(1);
         }
+
+        rlimit rl_stack;
+        rl_stack.rlim_cur = 4 * 1024 * 1024;
+        rl_stack.rlim_max = rl_stack.rlim_cur;
+        if (setrlimit(RLIMIT_STACK, &rl_stack) == -1)
+        {
+            perror("setrlimit STACK failed");
+            _exit(1);
+        }
     }
 
     void execute_code()
@@ -330,7 +370,7 @@ private:
         argv.push_back(nullptr);
 
         std::vector<std::string> env = {
-            "PATH=/usr/local/bin:/usr/bin:/bin",
+            "PATH=/bin",
             "LANG=C",
             "TZ=UTC"};
 
@@ -374,6 +414,64 @@ private:
         if (fin >> peak_bytes)
             return peak_bytes / 1024;
         return 0;
+    }
+
+    void load_seccomp()
+    {
+        scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_KILL);
+        if (ctx == NULL)
+        {
+            perror("seccomp_init failed");
+            _exit(1);
+        }
+
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(fstat), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(brk), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(readlinkat), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(readlink), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mprotect), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(set_robust_list), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(prlimit64), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(getrandom), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(futex), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(rseq), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(arch_prctl), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(set_tid_address), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(uname), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(sysinfo), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(lseek), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mmap), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(munmap), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mremap), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(openat), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(close), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(newfstatat), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(access), 0);
+
+
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(readv), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(writev), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(ioctl), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(fcntl), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit_group), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 0);
+
+        if (seccomp_load(ctx) != 0)
+        {
+            perror("seccomp_load failed");
+            seccomp_release(ctx);
+            _exit(1);
+        }
+
+        seccomp_release(ctx);
     }
 
     void clean_cgroup(const pid_t &pid)

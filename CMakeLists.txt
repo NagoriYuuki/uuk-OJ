@@ -83,6 +83,7 @@ target_link_libraries(uuk_judger
     ${REDIS_PLUS_PLUS_LIBRARY}
     ${HIREDIS_LIBRARY}
     Threads::Threads
+    seccomp
 )
 
 # 为了方便，让它也输出到 build 根目录

@@ -130,7 +130,7 @@ public:
         }
     }
 
-    std::optional<std::vector<Submission>> listAll(int limit = 50, int offset = 0)
+    std::optional<std::vector<Submission>> listAll(int limit = 1000, int offset = 0)
     {
         std::vector<Submission> vec;
         try
@@ -164,7 +164,7 @@ public:
         }
     }
 
-    std::optional<std::vector<Submission>> findByProblemId(const int problem_id, int limit = 50, int offset = 0)
+    std::optional<std::vector<Submission>> findByProblemId(const int problem_id, int limit = 1000, int offset = 0)
     {
         try
         {
@@ -238,7 +238,7 @@ public:
         }
     }
 
-    std::optional<std::vector<Submission>> findByProblemIdAndUserId(const int problem_id, const int user_id, int limit = 50, int offset = 0)
+    std::optional<std::vector<Submission>> findByProblemIdAndUserId(const int problem_id, const int user_id, int limit = 1000, int offset = 0)
     {
         try
         {

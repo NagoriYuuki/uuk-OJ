@@ -1,3 +1,11 @@
+// 1. 在这里定义 BASE_URL
+// 如果你使用 Vite 代理（方案一），这里留空字符串 '' 即可
+// 浏览器会自动使用相对路径，Vite 会帮你转发到 18080
+const BASE_URL = '';
+
+// 如果不使用代理，必须写死后端地址（会有跨域问题，不推荐）
+// const BASE_URL = 'http://localhost:18080';
+
 type RequestOptions = {
   method?: string
   headers?: Record<string, string>
@@ -33,7 +41,11 @@ export async function apiRequest<T = any>(path: string, options: RequestOptions 
     }
   }
 
-  const resp = await fetch(path, { method, headers, body })
+  // 2. 修改这里：拼接 URL
+  // 如果 path 本身是 http 开头的（比如外部链接），就不拼接 BASE_URL
+  const url = path.startsWith('http') ? path : BASE_URL + path;
+
+  const resp = await fetch(url, { method, headers, body })
   const data = await parseBody(resp)
 
   if (!resp.ok) {

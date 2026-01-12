@@ -17,8 +17,8 @@ public:
     std::string sample_output;
     std::string created_time;
     std::string tc_path;
-    i64 sub_count;
-    i64 ac_count;
+    i64 sub_count = 0;
+    i64 ac_count = 0;
 
     Problem() = default;
     Problem(const int id,

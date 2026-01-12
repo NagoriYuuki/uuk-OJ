@@ -736,6 +736,7 @@ CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o
  /usr/include/c++/13/vector
  /usr/include/c++/13/version
  /usr/include/ctype.h
+ /usr/include/elf.h
  /usr/include/endian.h
  /usr/include/errno.h
  /usr/include/fcntl.h
@@ -746,9 +747,12 @@ CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o
  /usr/include/hiredis/read.h
  /usr/include/hiredis/sds.h
  /usr/include/ifaddrs.h
+ /usr/include/inttypes.h
  /usr/include/libintl.h
  /usr/include/limits.h
+ /usr/include/linux/audit.h
  /usr/include/linux/close_range.h
+ /usr/include/linux/elf-em.h
  /usr/include/linux/errno.h
  /usr/include/linux/falloc.h
  /usr/include/linux/ioctl.h
@@ -756,6 +760,7 @@ CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o
  /usr/include/linux/mount.h
  /usr/include/linux/param.h
  /usr/include/linux/posix_types.h
+ /usr/include/linux/seccomp.h
  /usr/include/linux/stat.h
  /usr/include/linux/stddef.h
  /usr/include/linux/types.h
@@ -771,6 +776,8 @@ CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o
  /usr/include/resolv.h
  /usr/include/rpc/netdb.h
  /usr/include/sched.h
+ /usr/include/seccomp-syscalls.h
+ /usr/include/seccomp.h
  /usr/include/semaphore.h
  /usr/include/signal.h
  /usr/include/stdc-predef.h

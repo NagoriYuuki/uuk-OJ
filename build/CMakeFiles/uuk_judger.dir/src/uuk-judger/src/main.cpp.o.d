@@ -980,5 +980,8 @@ CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/sys/resource.h \
  /usr/include/x86_64-linux-gnu/bits/resource.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_rusage.h \
+ /usr/include/seccomp.h /usr/include/elf.h /usr/include/inttypes.h \
+ /usr/include/linux/audit.h /usr/include/linux/elf-em.h \
+ /usr/include/linux/seccomp.h /usr/include/seccomp-syscalls.h \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/../include/httplib.h \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/src/../include/ans_checker.hpp
