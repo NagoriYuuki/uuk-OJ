@@ -48,7 +48,7 @@ signed main(void)
                 User user;
                 user.username = json["username"].s();
                 std::string pw = json["password"].s();
-                std::string pwhash = std::to_string(Encode::hash(pw));
+                std::string pwhash = Encode::gethash(pw);
                 user.password_hash = pwhash;
                 auto token = auths.login(user);
                 if (!token.has_value())
@@ -92,7 +92,7 @@ signed main(void)
                 }
                 User user;
                 user.username = username;
-                user.password_hash = std::to_string(Encode::hash(password));
+                user.password_hash = Encode::gethash(password);
                 AuthService auths(con);
                 if (!auths.registerUser(user))
                 {
@@ -387,7 +387,7 @@ signed main(void)
                 user.username = json["username"].s();
                 // user.password_hash = json["password"].s();
                 auto pw = json["password"].s();
-                user.password_hash = std::to_string(Encode::hash(pw));
+                user.password_hash = Encode::gethash(pw);
                 user.role = json.has("role") ? json["role"].i() : 0;
 
                 UserService us(con);
@@ -443,7 +443,7 @@ signed main(void)
                 if (json.has("username"))
                     u.username = json["username"].s();
                 if (json.has("password"))
-                    u.password_hash = std::to_string(Encode::hash(json["password"].s()));
+                    u.password_hash = Encode::gethash(json["password"].s());
                 if (json.has("role"))
                     u.role = json["role"].i();
 

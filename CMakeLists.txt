@@ -4,6 +4,10 @@ project(uukOJ)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(PkgConfig REQUIRED)
+# "libcrypto++" 是 Ubuntu 包管理器中的名称
+pkg_check_modules(CRYPTOPP REQUIRED libcrypto++)
+
 find_path(REDIS_PLUS_PLUS_INCLUDE_DIR sw/redis++/redis++.h)
 find_library(REDIS_PLUS_PLUS_LIBRARY redis++)
 find_library(HIREDIS_LIBRARY hiredis)
@@ -37,6 +41,7 @@ set(MARIADB_CPP_LIBRARY_DIR "/usr/local/lib/mariadb")
 # 包含头文件
 set(UUKOJ_INCLUDE_DIRS
     ${MARIADB_CPP_INCLUDE_DIR}
+    ${CRYPTOPP_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/entities
     ${CMAKE_CURRENT_SOURCE_DIR}/mapper
@@ -53,7 +58,7 @@ target_include_directories(api_checker PRIVATE ${UUKOJ_INCLUDE_DIRS})
 
 # 链接库
 target_link_directories(uukOJ PRIVATE ${MARIADB_CPP_LIBRARY_DIR})
-target_link_libraries(uukOJ PRIVATE mariadbcpp)
+target_link_libraries(uukOJ PRIVATE mariadbcpp ${CRYPTOPP_LIBRARIES} )
 
 target_link_directories(crud_smoke PRIVATE ${MARIADB_CPP_LIBRARY_DIR})
 target_link_libraries(crud_smoke PRIVATE mariadbcpp)

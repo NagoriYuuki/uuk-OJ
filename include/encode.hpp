@@ -1,20 +1,29 @@
 #pragma once
 
 #include <string>
+#include <cryptopp/sha.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/filters.h>
 
 class Encode
 {
-private:
-    using i64 = long long;
-    constexpr static i64 mod = 100000000000031LL;
-    constexpr static i64 base = 13331;
-
 public:
-    static i64 hash(const std::string &str)
+    std::string static gethash(const std::string &src)
     {
-        i64 val = 0;
-        for (auto &i : str)
-            val = (val * base + static_cast<i64>(i)) % mod;
-        return val;
+        std::string res;
+        CryptoPP::SHA256 hash;
+        CryptoPP::StringSource
+            ss(src,
+               true,
+               new CryptoPP::HashFilter(
+                   hash,
+                   new CryptoPP::HexEncoder(
+                       new CryptoPP::StringSink(res))));
+        return res;
+    }
+
+    static bool verify(const std::string &src, const std::string &hash)
+    {
+        return gethash(src) == hash;
     }
 };
