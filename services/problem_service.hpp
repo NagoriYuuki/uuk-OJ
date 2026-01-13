@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <vector>
+#include <filesystem>
 
 class ProblemService
 {
@@ -33,7 +34,16 @@ public:
 
 	bool remove(const int id)
 	{
-		return pm.remove(id);
+		bool judge = pm.remove(id);
+		if (judge)
+		{
+			std::string tc_dir = "data/problems/p" + std::to_string(id);
+			if (std::filesystem::exists(tc_dir))
+				std::filesystem::remove_all(tc_dir);
+			else
+				std::cerr << "Testcase directory not found for problem " << id << std::endl;
+		}
+		return judge;
 	}
 
 	std::optional<std::vector<Problem>> listAll(int limit = 50, int offset = 0)
