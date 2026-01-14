@@ -242,7 +242,7 @@ private:
             _exit(1);
         }
 
-        // load_seccomp();
+        load_seccomp();
 
         execute_code();
     }
