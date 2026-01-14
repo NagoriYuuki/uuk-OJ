@@ -261,6 +261,8 @@ signed main(void)
                 problem.sample_input = json.has("sample_input") ? std::string(json["sample_input"].s()) : std::string{};
                 problem.sample_output = json.has("sample_output") ? std::string(json["sample_output"].s()) : std::string{};
                 problem.tc_path = json.has("tc_path") ? std::string(json["tc_path"].s()) : std::string{};
+                problem.ac_count = json.has("ac_count") ? static_cast<i64>(json["ac_count"].i()) : 0;
+                problem.sub_count = json.has("sub_count") ? static_cast<i64>(json["sub_count"].i()) : 0;
                 ProblemService ps(con);
                 ps.update(problem);
                 res["code"] = 200;
