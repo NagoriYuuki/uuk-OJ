@@ -79,14 +79,28 @@
                     <div class="form-group">
                         <label class="form-label">时间限制 (ms)</label>
                         <div class="input-suffix-wrapper">
-                            <input type="number" v-model.number="form.time_limit" class="input-control" />
+                            <input
+                                type="number"
+                                v-model.number="form.time_limit"
+                                class="input-control"
+                                min="0"
+                                max="100000"
+                                step="1"
+                            />
                             <span class="suffix">ms</span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">内存限制 (KB)</label>
                         <div class="input-suffix-wrapper">
-                            <input type="number" v-model.number="form.mem_limit" class="input-control" />
+                            <input
+                                type="number"
+                                v-model.number="form.mem_limit"
+                                class="input-control"
+                                min="0"
+                                max="1048576"
+                                step="1"
+                            />
                             <span class="suffix">KB</span>
                         </div>
                     </div>
@@ -195,6 +209,38 @@ async function fetchDetails() {
 async function submitForm() {
     const token = localStorage.getItem('token')
     if (!token) return alert('请先登录')
+
+    const TIME_MIN = 0
+    const TIME_MAX = 100000 // 100s
+    const MEM_MIN = 0
+    const MEM_MAX = 1048576 // 1GB in KB
+
+    const toInt = (value: unknown) => {
+        const n = typeof value === 'number' ? value : Number(value)
+        if (!Number.isFinite(n)) return null
+        return Math.trunc(n)
+    }
+
+    const rawTime = form.time_limit
+    const rawMem = form.mem_limit
+    const t = toInt(form.time_limit)
+    const m = toInt(form.mem_limit)
+
+    const problems: string[] = []
+    if (t === null) problems.push(`时间限制不是合法数字：${String(rawTime)}`)
+    else if (t < TIME_MIN || t > TIME_MAX) problems.push(`时间限制超出范围：${t}（允许 ${TIME_MIN}~${TIME_MAX} ms）`)
+
+    if (m === null) problems.push(`内存限制不是合法数字：${String(rawMem)}`)
+    else if (m < MEM_MIN || m > MEM_MAX) problems.push(`内存限制超出范围：${m}（允许 ${MEM_MIN}~${MEM_MAX} KB）`)
+
+    if (problems.length) {
+        alert('评测限制填写不合法，已取消提交：\n' + problems.map((x) => `- ${x}`).join('\n'))
+        return
+    }
+
+    // Normalize to integers before submit
+    form.time_limit = t as number
+    form.mem_limit = m as number
 
     submitting.value = true
     const url = isEdit.value ? `/api/admin/problems/${problemId}` : `/api/admin/problems`
@@ -473,7 +519,7 @@ textarea:focus {
     background: white;
     color: var(--primary);
     font-weight: 600;
-    shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .editor-container {
