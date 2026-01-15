@@ -144,7 +144,10 @@ function statusColor(status: string) {
 
 function shouldKeepRefreshing(status: string) {
   const s = (status || '').toLowerCase()
-  return s.includes('submit') || s.includes('running') || s.includes('judg') || s.includes('pending') || s.includes('compil')
+  // Important: "Compile Error" contains "compil" but is a terminal state.
+  if ((s.includes('compile') && s.includes('error')) || s.trim() === 'ce') return false
+  // Only keep polling for in-progress states.
+  return s === 'submitted' || s === 'compiling' || s === 'running' || s.includes('judg') || s.includes('pending')
 }
 
 const isInProgress = computed(() => {
@@ -162,11 +165,14 @@ const stage = computed(() => {
   const s = (sub.value.status || '').toLowerCase()
   const d = (sub.value.detail || '').toLowerCase()
 
+  // Terminal compile errors should not be treated as "compiling".
+  if ((s.includes('compile') && s.includes('error')) || s.trim() === 'ce') return 'done'
+
   // Prefer detail-driven inference when available (more granular).
   if (d.includes('running on test') || d.includes('test #') || d.includes('test#')) return 'running'
   if (s.includes('running') || s.includes('judg')) return 'running'
-  if (s.includes('compil') || d.includes('compil')) return 'compiling'
-  if (s.includes('submit') || s.includes('pending')) return 'waiting'
+  if (s === 'compiling' || d.includes('compiling')) return 'compiling'
+  if (s === 'submitted' || s.includes('pending')) return 'waiting'
   return 'done'
 })
 
@@ -233,7 +239,7 @@ const finalClass = computed(() => {
   if (s.includes('wrong') || s.includes('wa')) return 'bad'
   if (s.includes('tle') || s.includes('time')) return 'warn'
   if (s.includes('mle') || s.includes('mem')) return 'warn'
-  if (s.includes('compile') || s.includes('ce')) return 'bad'
+  if (s.includes('compile') || s.trim() === 'ce') return 'ce'
   if (s.includes('system')) return 'bad'
   return 'neutral'
 })
@@ -444,6 +450,9 @@ watch(autoRefresh, (v) => {
 }
 .final-status.bad {
   color: rgba(180, 35, 24, 0.95);
+}
+.final-status.ce {
+  color: rgba(109, 40, 217, 0.95);
 }
 .final-status.neutral {
   color: rgba(15, 23, 42, 0.92);
