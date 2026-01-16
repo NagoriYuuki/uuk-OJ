@@ -115,7 +115,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
             continue;
         }
         auto task_info = parse_task(task_opt.value());
-        std::string work_path = std::filesystem::absolute("../workspace/task" + std::to_string(task_info.submission_id)).string();
+        std::string work_path = std::filesystem::absolute("workspace/task" + std::to_string(task_info.submission_id)).string();
 
         std::filesystem::remove_all(work_path);
         std::filesystem::create_directory(work_path);
@@ -262,7 +262,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
 
 signed main(void)
 {
-    std::filesystem::create_directory("../workspace");
+    std::filesystem::create_directory("workspace");
 
     crow::App app;
 
