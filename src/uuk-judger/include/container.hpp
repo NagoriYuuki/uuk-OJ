@@ -158,7 +158,6 @@ public:
         close(sync_pipe[1]);
         close(sync_pipe[0]);
 
-        // delete args_ptr;
 
         std::thread watch_thread(
             [pid, limit = config.time_limit, finished]()
