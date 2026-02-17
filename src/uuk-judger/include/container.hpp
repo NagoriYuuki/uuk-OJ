@@ -21,9 +21,9 @@
 #include <sstream>
 #include <seccomp.h>
 
+#include "./entities/config.hpp"
+
 using i64 = long long;
-
-
 
 struct RunResult
 {

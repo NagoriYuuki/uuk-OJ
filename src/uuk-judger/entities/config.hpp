@@ -14,6 +14,10 @@ public:
     std::string input_path;
     std::string output_path;
     std::string work_dir;
+    std::string overlay_lower;
+    std::string overlay_upper;
+    std::string overlay_work;
+    std::string overlay_merge;
 
     Config()
         : code_path(""),
@@ -22,18 +26,27 @@ public:
           mem_limit(65536),
           input_path(""),
           output_path(""),
-          work_dir("") {}
+          work_dir(""),
+          overlay_lower(""),
+          overlay_upper(""),
+          overlay_work(""),
+          overlay_merge("") {};
+
     Config(const std::string &cp,
            const std::vector<std::string> &a,
            const int tl,
            const i64 ml,
            const std::string &ip,
-           const std::string &op, const std::string &wd)
+           const std::string &op, const std::string &wd, const std::string &overlay_lower, const std::string overlay_upper, const std::string overlay_work, const std::string &overlay_merge)
         : code_path(cp),
           args(a),
           time_limit(tl),
           mem_limit(ml),
           input_path(ip),
           output_path(op),
-          work_dir(wd) {}
+          work_dir(wd),
+          overlay_lower(overlay_lower),
+          overlay_upper(overlay_upper),
+          overlay_work(overlay_work),
+          overlay_merge(overlay_merge) {};
 };
