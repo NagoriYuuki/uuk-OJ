@@ -14,23 +14,9 @@
 #include "../include/container.hpp"
 #include "../include/httplib.h"
 #include "../include/ans_checker.hpp"
+#include "./entities/task_info.hpp"
 
 using i64 = long long;
-
-struct TaskInfo
-{
-    i64 submission_id;
-    int problem_id;
-    std::string code;
-    std::string lang;
-    int time_limit;
-    int mem_limit;
-    std::string tc_path;
-
-    TaskInfo() = default;
-    TaskInfo(i64 sid, int pid, const std::string &c, const std::string &l, int tl, int ml, const std::string &tc)
-        : submission_id(sid), problem_id(pid), code(c), lang(l), time_limit(tl), mem_limit(ml), tc_path(tc) {}
-};
 
 TaskInfo parse_task(const std::string &task_str)
 {

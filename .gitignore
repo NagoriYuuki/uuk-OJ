@@ -4,3 +4,4 @@ data/problems/
 .cph
 uuk_oj.sql
 src/uuk-judger/rootfs
+src/uuk-judger/include/overlayfs.hpp
