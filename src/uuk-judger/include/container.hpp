@@ -21,7 +21,7 @@
 #include <sstream>
 #include <seccomp.h>
 
-#include "./entities/config.hpp"
+#include "../entities/config.hpp"
 
 using i64 = long long;
 
@@ -127,7 +127,6 @@ public:
         close(sync_pipe[1]);
         close(sync_pipe[0]);
 
-
         std::thread watch_thread(
             [pid, limit = config.time_limit, finished]()
             {
@@ -206,11 +205,12 @@ private:
 
         if (setgid(65534) == -1 || setuid(65534) == -1)
         {
-            perror("setuid/gid failed");
+            perror("set uid/gid failed");
             _exit(1);
         }
 
-        load_seccomp();
+        if (config.is_judging)
+            load_seccomp_allow();
 
         execute_code();
     }
@@ -223,9 +223,21 @@ private:
             _exit(1);
         }
 
-        if (mount("proc", "/proc", "proc", 0, NULL) == -1)
+        if (!config.overlay_lower.empty())
         {
-            perror("mount proc failed");
+            std::string options = "lowerdir=" + config.overlay_lower +
+                                  ",upperdir=" + config.overlay_upper +
+                                  ",workdir=" + config.overlay_work;
+            if (mount("overlay", config.work_dir.c_str(), "overlay", 0, options.c_str()))
+            {
+                perror(config.work_dir.c_str());
+                perror("mount overlay Failed");
+                _exit(1);
+            }
+        }
+        else
+        {
+            perror("No overlay_lower");
             _exit(1);
         }
     }
@@ -262,6 +274,11 @@ private:
                 perror("dup2 output failed");
                 _exit(1);
             }
+            if (dup2(fd, STDERR_FILENO) == -1)
+            {
+                perror("dup2 stderr failed");
+                _exit(1);
+            }
             close(fd);
         }
     }
@@ -278,7 +295,7 @@ private:
             perror("chroot failed");
             _exit(1);
         }
-        if (chdir("/") == -1)
+        if (chdir("/"))
         {
             perror("chdir / failed");
             _exit(1);
@@ -287,6 +304,14 @@ private:
         {
             perror("mount proc failed");
             _exit(1);
+        }
+        if (mount("devtmpfs", "/dev", "devtmpfs", 0, NULL) == -1)
+        {
+            if (mount("/dev", "/dev", "", MS_BIND | MS_REC, NULL) == -1)
+            {
+                perror("mount dev failed");
+                _exit(1);
+            }
         }
     }
 
@@ -337,9 +362,17 @@ private:
             argv.push_back(const_cast<char *>(i.c_str()));
         argv.push_back(nullptr);
 
+        // std::cerr << "--- [DEBUG EXECVE] ---" << std::endl;
+        // std::cerr << "Command: " << config.code_path << std::endl;
+        // for (int i = 0; i < argv.size() - 1; i++)
+        // {
+        //     std::cerr << "Arg[" << i << "]: " << argv[i] << std::endl;
+        // }
+        // std::cerr << "----------------------" << std::endl;
+
         std::vector<std::string> env = {
-            "PATH=/bin",
-            "LANG=C",
+            "PATH=/bin:/usr/bin:/bin",
+            "LANG=C.UTF-8",
             "TZ=UTC"};
 
         std::vector<char *> envp;
@@ -348,6 +381,8 @@ private:
             envp.push_back(strdup(s.c_str()));
         envp.push_back(nullptr);
         execve(config.code_path.c_str(), argv.data(), envp.data());
+        perror(config.is_judging == false ? "Compeling..." : "Running");
+        perror(config.code_path.c_str());
         perror("execve failed");
         _exit(1);
     }
@@ -370,7 +405,10 @@ private:
 
         write_into(task_path + "/memory.max", std::to_string(config.mem_limit * 1024));
         write_into(task_path + "/memory.swap.max", "0");
-        write_into(task_path + "/pids.max", "1");
+        // if (config.is_judging)
+        //     write_into(task_path + "/pids.max", "1");
+        // else
+        write_into(task_path + "/pids.max", "32");
         write_into(task_path + "/cgroup.procs", std::to_string(pid));
     }
 
@@ -384,7 +422,7 @@ private:
         return 0;
     }
 
-    void load_seccomp()
+    void load_seccomp_kill()
     {
         scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_KILL);
         if (ctx == NULL)
@@ -430,6 +468,41 @@ private:
         seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0);
         seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit_group), 0);
         seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 0);
+
+        if (seccomp_load(ctx) != 0)
+        {
+            perror("seccomp_load failed");
+            seccomp_release(ctx);
+            _exit(1);
+        }
+
+        seccomp_release(ctx);
+    }
+
+    void load_seccomp_allow()
+    {
+        scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW);
+        if (ctx == NULL)
+        {
+            perror("seccomp_init failed");
+            _exit(1);
+        }
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fork), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(vfork), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(setuid), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(setgid), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(setreuid), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(setregid), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(setresuid), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(setresgid), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(ptrace), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(process_vm_readv), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(process_vm_writev), 0);
+
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(mount), 0);
+        seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(umount2), 0);
 
         if (seccomp_load(ctx) != 0)
         {

@@ -14,7 +14,8 @@
 #include "../include/container.hpp"
 #include "../include/httplib.h"
 #include "../include/ans_checker.hpp"
-#include "./entities/task_info.hpp"
+#include "../entities/task_info.hpp"
+#include "../include/overlayFS.hpp"
 
 using i64 = long long;
 
@@ -103,69 +104,83 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
         auto task_info = parse_task(task_opt.value());
         std::string work_path = std::filesystem::absolute("workspace/task" + std::to_string(task_info.submission_id)).string();
 
-        std::filesystem::remove_all(work_path);
-        std::filesystem::create_directory(work_path);
-        std::filesystem::create_directory(work_path + "/proc");
-
-        std::filesystem::permissions(
-            work_path,
-            std::filesystem::perms::all,
-            std::filesystem::perm_options::replace);
-
-        std::string code_path = work_path + "/code.cpp";
-        std::string exe_path = work_path + "/exe";
-
-        std::ofstream fout(code_path);
-        fout << task_info.code;
-        fout.close();
-
-        std::string complie_log_path = work_path + "/compile_log.log";
-        std::stringstream compile_cmd;
-        compile_cmd << "g++ " << code_path << " -o " << exe_path << " -O2 -std=c++23 -Wall -lm -static -DONLINE_JUDGE -w" << " 2> " << complie_log_path;
-
-        JudgeResult result(task_info.submission_id,
-                           task_info.problem_id,
-                           0,
-                           task_info.lang,
-                           task_info.code,
-                           "Pending",
-                           "",
-                           "",
-                           0,
-                           0);
-
-        std::thread([sid = task_info.submission_id]()
-                    { report_compiling(sid); })
-            .detach();
-
-        int compile_res = system(compile_cmd.str().c_str());
-        if (compile_res != 0)
+        OverlayFS overlay(task_info);
+        auto ofs = overlay.prepare_workspace();
+        if (ofs.status)
         {
-            std::cerr << "Compilation failed for submission " << task_info.submission_id << std::endl;
+            std::cerr << "Failed to init workspace for subid: " << task_info.submission_id << std::endl;
+            overlay.remove_workspace();
+            continue;
+        }
+        std::cerr << "Ready to complie!" << std::endl;
+        JudgeResult result;
+        result.id = task_info.submission_id;
+        result.problem_id = task_info.problem_id;
+
+        // ========
+        // Compilation Nya~
+        // ========
+
+        Config base_config;
+        base_config.overlay_lower = ofs.lower_path;
+        base_config.overlay_upper = ofs.upper_path;
+        base_config.overlay_work = ofs.work_path;
+        base_config.overlay_merge = ofs.merge_path;
+        base_config.work_dir = ofs.merge_path;
+
+        bool compile_success = true;
+        std::string compile_msg;
+
+        if (task_info.lang != "Python")
+        {
+            report_compiling(task_info.submission_id);
+            Config compile_cfg = base_config;
+            compile_cfg.is_judging = false;
+            compile_cfg.time_limit = 10000;
+            compile_cfg.mem_limit = 512 * 1024;
+            compile_cfg.output_path = "/compile.log";
+            std::cerr << "task_info.lang: " << task_info.lang << std::endl;
+            if (task_info.lang == "C++")
+            {
+                compile_cfg.code_path = "/usr/bin/g++";
+                compile_cfg.args = {"/main.cpp", "-o", "/exe", "-O2", "-static"};
+            }
+            else if (task_info.lang == "Java")
+            {
+                compile_cfg.code_path = "/usr/bin/javac";
+                compile_cfg.args = {"-d", ".", "/Main.java"};
+            }
+            std::cerr << "Ready to in container!!" << std::endl;
+
+            Container compile_container(compile_cfg);
+            auto proc = compile_container.start();
+            auto compile_res = compile_container.wait(proc.pid, proc.finished);
+            if (compile_res.exit_code || compile_res.status)
+            {
+                std::cerr << "compile info: " << compile_res.exit_code << " " << compile_res.status << std::endl;
+                compile_success = false;
+                std::ifstream fin(ofs.upper_path + "/compile.log");
+                std::stringstream buffer;
+                buffer << fin.rdbuf();
+                compile_msg = buffer.str();
+                if (compile_msg.empty())
+                    compile_msg = "Compilation Failed Exit Code " + std::to_string(compile_res.exit_code);
+            }
+        }
+        std::cerr << "compile_success: " << compile_success << std::endl;
+        if (!compile_success)
+        {
             result.status = "Compile Error";
-
-            std::ifstream fin(complie_log_path);
-            std::stringstream buffer;
-            buffer << fin.rdbuf();
-            std::string compile_log = buffer.str();
-            if (compile_log.size() > 8192)
-                compile_log = compile_log.substr(0, 8192) + "\n... (truncated)";
-            result.detail = compile_log;
-
+            result.detail = compile_msg;
+            std::cerr << "CE msg: " << compile_msg << std::endl;
             callback_final_res(result);
-
-            std::filesystem::remove_all(work_path);
-
+            overlay.remove_workspace();
             continue;
         }
 
-        Config config;
-        config.code_path = "/exe";
-        config.time_limit = task_info.time_limit;
-        config.mem_limit = task_info.mem_limit;
-        config.input_path = "/data.in";
-        config.output_path = "/user_output.txt";
-        config.work_dir = work_path;
+        // ==========
+        // Execution Nya~
+        // ==========
 
         std::string data_path = "data/problems/p" + std::to_string(task_info.problem_id);
         int testcases = 0;
@@ -175,35 +190,59 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                 testcases++;
         result.time_cost = 0;
         result.mem_cost = 0;
+        bool all_ac = false;
         for (int i = 1; i <= testcases; i++)
         {
             std::thread([sid = task_info.submission_id, idx = i, total = testcases]()
                         { report_progress(sid, idx, total); })
                 .detach();
+            // std::cerr << "check2!" << std::endl;
+            const std::string host_input = data_path + "/data" + std::to_string(i) + ".in";
+            const std::string host_output = data_path + "/data" + std::to_string(i) + ".out";
 
-            const std::string input_file = data_path + "/data" + std::to_string(i) + ".in";
-            const std::string output_file = data_path + "/data" + std::to_string(i) + ".out";
-            const std::string user_output_file = work_path + "/user_output.txt";
+            // copy_testcase(input_file, work_path + "/data.in");
+            copy_testcase(host_input, ofs.upper_path + "/data.in");
 
-            copy_testcase(input_file, work_path + "/data.in");
-
-            if (!std::filesystem::exists(input_file))
+            if (!std::filesystem::exists(host_input))
             {
                 result.status = "System Error";
                 result.detail = "Input file missing for Test #" + std::to_string(i);
                 break;
             }
+            // std::cerr << "Compiled!!" << std::endl;
+            Config run_cfg = base_config;
+            run_cfg.time_limit = task_info.time_limit;
+            run_cfg.mem_limit = task_info.mem_limit;
+            run_cfg.is_judging = true;
+            run_cfg.input_path = "/data.in";
+            run_cfg.output_path = "/user.out";
 
-            Container container(config);
+            if (task_info.lang == "C++")
+            {
+                run_cfg.code_path = "/exe";
+                run_cfg.args = {"/exe"};
+            }
+            else if (task_info.lang == "Python")
+            {
+                run_cfg.code_path = "/usr/bin/python3";
+                run_cfg.args = {"/main.py"};
+            }
+            else if (task_info.lang == "Java")
+            {
+                run_cfg.code_path = "/usr/bin/java";
+                run_cfg.args = {"-cp", ".", "Main"};
+            }
 
-            auto process_info = container.start();
+            Container run_container(run_cfg);
+
+            auto process_info = run_container.start();
             if (process_info.pid == -1)
             {
                 result.status = "System Error";
                 result.detail = "Failed to start container for Test #" + std::to_string(i);
                 break;
             }
-            auto run_result = container.wait(process_info.pid, process_info.finished);
+            auto run_result = run_container.wait(process_info.pid, process_info.finished);
             if (run_result.time_cost > result.time_cost)
                 result.time_cost = run_result.time_cost;
             if (run_result.mem_cost > result.mem_cost)
@@ -220,15 +259,22 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                     result.status = "Memory Limit Exceeded";
                     result.detail = "Memory Limit Exceeded on Test #" + std::to_string(i);
                 }
+                else if (run_result.status == 31)
+                {
+                    result.status = "Runtime Error";
+                    result.detail = "Dangerous System Call Blocked (Seccomp) on Test #" + std::to_string(i);
+                    std::cerr << "Process killed by Seccomp (SIGSYS 31)!" << std::endl;
+                }
                 else
                 {
+                    std::cerr << "exit_code: " << run_result.exit_code << std::endl;
                     result.status = "Runtime Error";
                     result.detail = "Runtime Error on Test #" + std::to_string(i);
                 }
                 break;
             }
 
-            bool judge_res = AnsChecker::check(user_output_file, output_file);
+            bool judge_res = AnsChecker::check(ofs.upper_path + "/user.out", host_output);
             if (!judge_res)
             {
                 result.status = "Wrong Answer";
@@ -242,7 +288,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
             }
         }
         callback_final_res(result);
-        std::filesystem::remove_all(work_path);
+        // overlay.remove_workspace();
     }
 }
 

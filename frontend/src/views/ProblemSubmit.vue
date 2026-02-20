@@ -26,9 +26,9 @@
                     <label>语言</label>
                     <select v-model="language" class="lang-select">
                         <option value="C++">C++</option>
-                        <!-- <option value="C">C</option>
+                        <!-- <option value="C">C</option> -->
                         <option value="Java">Java</option>
-                        <option value="Python">Python</option> -->
+                        <option value="Python">Python</option>
                     </select>
                 </div>
 

@@ -983,5 +983,8 @@ CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o: \
  /usr/include/seccomp.h /usr/include/elf.h /usr/include/inttypes.h \
  /usr/include/linux/audit.h /usr/include/linux/elf-em.h \
  /usr/include/linux/seccomp.h /usr/include/seccomp-syscalls.h \
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/src/../include/../entities/config.hpp \
  /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/../include/httplib.h \
- /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/src/../include/ans_checker.hpp
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/src/../include/ans_checker.hpp \
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/src/../entities/task_info.hpp \
+ /home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/src/../include/overlayFS.hpp
