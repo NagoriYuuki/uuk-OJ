@@ -1,1 +1,0 @@
-/usr/bin/c++  -Wall --std=c++11 -O3 -rdynamic CMakeFiles/bcrypt_test.dir/src/main.cpp.o -o bcrypt_test  libbcrypt.a 

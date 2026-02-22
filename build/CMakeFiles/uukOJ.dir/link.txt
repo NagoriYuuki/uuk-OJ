@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/uukOJ.dir/src/main.cpp.o -o uukOJ   -L/usr/local/lib/mariadb  -Wl,-rpath,/usr/local/lib/mariadb -lmariadbcpp -lcryptopp 

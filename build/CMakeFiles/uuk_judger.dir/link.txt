@@ -1,1 +1,0 @@
-/usr/bin/c++ "CMakeFiles/uuk_judger.dir/src/uuk-judger/src/main.cpp.o" -o uuk_judger  -Wl,-rpath,/usr/local/lib /usr/local/lib/libredis++.so /usr/lib/x86_64-linux-gnu/libhiredis.so -lseccomp 
