@@ -33,6 +33,8 @@ public:
 				auto val = redis->get(key);
 				if (val.has_value())
 				{
+					if (val.value().empty())
+						return std::nullopt;
 					auto json = crow::json::load(val.value());
 					Problem problem(
 						json["id"].i(),
@@ -55,29 +57,38 @@ public:
 			}
 		}
 		auto problem_opt = pm.findById(id);
-		if (problem_opt.has_value() && is_redis_enabled)
+		if (is_redis_enabled)
 		{
-			crow::json::wvalue json;
-			json["id"] = problem_opt->id;
-			json["title"] = problem_opt->title;
-			json["time_limit"] = problem_opt->time_limit;
-			json["mem_limit"] = problem_opt->mem_limit;
-			json["description"] = problem_opt->description;
-			json["sample_input"] = problem_opt->sample_input;
-			json["sample_output"] = problem_opt->sample_output;
-			json["created_time"] = problem_opt->created_time;
-			json["tc_path"] = problem_opt->tc_path;
-			json["sub_count"] = problem_opt->sub_count;
-			json["ac_count"] = problem_opt->ac_count;
-			try
+			if (problem_opt.has_value())
 			{
-				redis->set(key, json.dump(), std::chrono::seconds(30));
+				crow::json::wvalue json;
+				json["id"] = problem_opt->id;
+				json["title"] = problem_opt->title;
+				json["time_limit"] = problem_opt->time_limit;
+				json["mem_limit"] = problem_opt->mem_limit;
+				json["description"] = problem_opt->description;
+				json["sample_input"] = problem_opt->sample_input;
+				json["sample_output"] = problem_opt->sample_output;
+				json["created_time"] = problem_opt->created_time;
+				json["tc_path"] = problem_opt->tc_path;
+				json["sub_count"] = problem_opt->sub_count;
+				json["ac_count"] = problem_opt->ac_count;
+				try
+				{
+					thread_local static std::mt19937 rng(std::random_device{}());
+					std::uniform_int_distribution<int> dist(30, 60);
+					int expire_time = dist(rng);
+					redis->set(key, json.dump(), std::chrono::seconds(expire_time));
+				}
+				catch (const std::exception &e)
+				{
+					std::cerr << "Failed to cache problem detail in Redis: " << e.what() << std::endl;
+				}
 			}
-			catch (const std::exception &e)
-			{
-				std::cerr << "Failed to cache problem detail in Redis: " << e.what() << std::endl;
-			}
+			else
+				redis->set(key, "", std::chrono::seconds(30));
 		}
+
 		return problem_opt;
 	}
 
@@ -92,16 +103,31 @@ public:
 	bool update(const Problem &problem)
 	{
 		bool judge = pm.update(problem);
-		if (judge && is_redis_enabled)
+		if (is_redis_enabled)
 		{
-			std::string key = "problem:detail:" + std::to_string(problem.id);
-			try
+			if (judge)
 			{
-				redis->del(key);
+				std::string key = "problem:detail:" + std::to_string(problem.id);
+				try
+				{
+					redis->del(key);
+				}
+				catch (const std::exception &e)
+				{
+					std::cerr << "Failed to invalidate problem cache in Redis: " << e.what() << std::endl;
+				}
 			}
-			catch (const std::exception &e)
+			else
 			{
-				std::cerr << "Failed to invalidate problem cache in Redis: " << e.what() << std::endl;
+				std::string key = "problem:detail:" + std::to_string(problem.id);
+				try
+				{
+					redis->set(key, "", std::chrono::seconds(30));
+				}
+				catch (const std::exception &e)
+				{
+					std::cerr << "Failed to invalidate problem cache in Redis: " << e.what() << std::endl;
+				}
 			}
 		}
 		return judge;
@@ -130,6 +156,21 @@ public:
 				}
 			}
 		}
+		else
+		{
+			std::string key = "problem:detail:" + std::to_string(id);
+			if (is_redis_enabled)
+			{
+				try
+				{
+					redis->set(key, "", std::chrono::seconds(30));
+				}
+				catch (const std::exception &e)
+				{
+					std::cerr << "Failed to invalidate problem cache in Redis: " << e.what() << std::endl;
+				}
+			}
+		}
 		return judge;
 	}
 
@@ -143,6 +184,8 @@ public:
 				auto val = redis->get(key);
 				if (val.has_value())
 				{
+					if (val.value().empty())
+						return std::nullopt;
 					auto json = crow::json::load(val.value());
 					std::vector<Problem> problems;
 					for (const auto &item : json)
@@ -169,30 +212,47 @@ public:
 			}
 		}
 		auto problems_opt = pm.listAll(limit, offset);
-		if (problems_opt.has_value() && is_redis_enabled)
+		if (is_redis_enabled)
 		{
-			try
+			if (problems_opt.has_value())
 			{
-				crow::json::wvalue json;
-				std::size_t idx = 0;
-				for (const auto &problem : problems_opt.value())
+				try
 				{
-					crow::json::wvalue item;
-					item["id"] = problem.id;
-					item["title"] = problem.title;
-					item["time_limit"] = problem.time_limit;
-					item["mem_limit"] = problem.mem_limit;
-					item["created_time"] = problem.created_time;
-					item["sub_count"] = problem.sub_count;
-					item["ac_count"] = problem.ac_count;
-					json[idx++] = std::move(item);
-				}
+					crow::json::wvalue json;
+					std::size_t idx = 0;
+					for (const auto &problem : problems_opt.value())
+					{
+						crow::json::wvalue item;
+						item["id"] = problem.id;
+						item["title"] = problem.title;
+						item["time_limit"] = problem.time_limit;
+						item["mem_limit"] = problem.mem_limit;
+						item["created_time"] = problem.created_time;
+						item["sub_count"] = problem.sub_count;
+						item["ac_count"] = problem.ac_count;
+						json[idx++] = std::move(item);
+					}
 
-				redis->set(key, json.dump(), std::chrono::seconds(10));
+					thread_local static std::mt19937 rng(std::random_device{}());
+					std::uniform_int_distribution<int> dist(10, 20);
+					int expire_time = dist(rng);
+					redis->set(key, json.dump(), std::chrono::seconds(expire_time));
+				}
+				catch (const std::exception &e)
+				{
+					std::cerr << "Failed to cache problem list in Redis: " << e.what() << std::endl;
+				}
 			}
-			catch (const std::exception &e)
+			else
 			{
-				std::cerr << "Failed to cache problem list in Redis: " << e.what() << std::endl;
+				try
+				{
+					redis->set(key, "", std::chrono::seconds(30));
+				}
+				catch (const std::exception &e)
+				{
+					std::cerr << "Failed to cache problem list in Redis: " << e.what() << std::endl;
+				}
 			}
 		}
 		return problems_opt;
