@@ -22,10 +22,10 @@ add_executable(uukOJ
 add_executable(uuk_judger src/uuk-judger/src/main.cpp)
 
 # CRUD 冒烟测试（最简单验证 Mapper 是否能正常工作）
-add_executable(crud_smoke 
+add_executable(crud_smoke
     src/crud_smoke.cpp
-    )
-add_executable(crudtest 
+)
+add_executable(crudtest
     src/crudtest.cpp
 )
 
@@ -58,7 +58,9 @@ target_include_directories(api_checker PRIVATE ${UUKOJ_INCLUDE_DIRS})
 
 # 链接库
 target_link_directories(uukOJ PRIVATE ${MARIADB_CPP_LIBRARY_DIR})
-target_link_libraries(uukOJ PRIVATE mariadbcpp ${CRYPTOPP_LIBRARIES} )
+target_link_libraries(uukOJ PRIVATE mariadbcpp ${CRYPTOPP_LIBRARIES}
+    ${REDIS_PLUS_PLUS_LIBRARY}
+    ${HIREDIS_LIBRARY})
 
 target_link_directories(crud_smoke PRIVATE ${MARIADB_CPP_LIBRARY_DIR})
 target_link_libraries(crud_smoke PRIVATE mariadbcpp)
@@ -75,15 +77,15 @@ set_target_properties(uukOJ PROPERTIES
 
 # 评测机部分
 
-target_include_directories(uuk_judger PRIVATE 
+target_include_directories(uuk_judger PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/uuk-judger/src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/uuk-judger/src
     ${REDIS_PLUS_PLUS_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # 链接评测机需要的库: redis++, hiredis, pthread
-target_link_libraries(uuk_judger 
+target_link_libraries(uuk_judger
     PRIVATE
     ${REDIS_PLUS_PLUS_LIBRARY}
     ${HIREDIS_LIBRARY}

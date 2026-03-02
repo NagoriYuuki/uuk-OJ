@@ -25,7 +25,9 @@ using i64 = long long;
 signed main(void)
 {
     crow::App<AuthMiddleware> app;
+    auto problem_redis_ptr = std::make_shared<sw::redis::Redis>("tcp://127.0.0.1:6379");
 
+    // auto problem_redis_ptr_ptr = nullptr;
     CROW_ROUTE(app, "/")
     ([]()
      { return "Hello, uuk-OJ!"; });
@@ -128,7 +130,7 @@ signed main(void)
             {
                 auto conn = DBPool::instance().getConnection();
                 auto &con = *conn;
-                ProblemService ps(con);
+                ProblemService ps(con, problem_redis_ptr);
                 auto vec = ps.listAll(50, 0);
 
                 if (!vec.has_value())
@@ -160,7 +162,7 @@ signed main(void)
             {
                 auto conn = DBPool::instance().getConnection();
                 auto &con = *conn;
-                ProblemService ps(con);
+                ProblemService ps(con, problem_redis_ptr);
                 auto problem = ps.getById(problem_id);
                 crow::json::wvalue item;
                 if (!problem.has_value())
@@ -218,7 +220,7 @@ signed main(void)
                 problem.sample_input = json.has("sample_input") ? std::string(json["sample_input"].s()) : std::string{};
                 problem.sample_output = json.has("sample_output") ? std::string(json["sample_output"].s()) : std::string{};
                 problem.tc_path = json.has("tc_path") ? std::string(json["tc_path"].s()) : std::string{};
-                ProblemService ps(con);
+                ProblemService ps(con, problem_redis_ptr);
                 std::cerr << "asd: " << problem.ac_count << " " << problem.sub_count << std::endl;
                 auto new_id = ps.create(problem);
                 if (!new_id.has_value())
@@ -263,7 +265,7 @@ signed main(void)
                 problem.tc_path = json.has("tc_path") ? std::string(json["tc_path"].s()) : std::string{};
                 problem.ac_count = json.has("ac_count") ? static_cast<i64>(json["ac_count"].i()) : 0;
                 problem.sub_count = json.has("sub_count") ? static_cast<i64>(json["sub_count"].i()) : 0;
-                ProblemService ps(con);
+                ProblemService ps(con, problem_redis_ptr);
                 ps.update(problem);
                 res["code"] = 200;
                 res["message"] = "Problem updated successfully nya~";
@@ -284,7 +286,7 @@ signed main(void)
                     res["message"] = "Admin access required nya~";
                     return crow::response(403, res);
                 }
-                ProblemService ps(con);
+                ProblemService ps(con, problem_redis_ptr);
                 if (!ps.getById(problem_id).has_value())
                 {
                     res["code"] = 404;
@@ -585,7 +587,7 @@ signed main(void)
                 SubmissionService ss(con);
                 auto new_id = ss.create(submission);
 
-                ProblemService ps(con);
+                ProblemService ps(con, problem_redis_ptr);
                 ps.updateStat(submission.problem_id, false);
 
                 if (!new_id.has_value())
@@ -644,7 +646,7 @@ signed main(void)
                     auto sub_opt = ss.getById(submission_id);
                     if (sub_opt.has_value())
                     {
-                        ProblemService ps(con);
+                        ProblemService ps(con, problem_redis_ptr);
                         ps.updateStat(sub_opt->problem_id, true);
                     }
                 }
