@@ -112,7 +112,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
             overlay.remove_workspace();
             continue;
         }
-        std::cerr << "Ready to complie!" << std::endl;
+        // std::cerr << "Ready to complie!" << std::endl;
         JudgeResult result;
         result.id = task_info.submission_id;
         result.problem_id = task_info.problem_id;
@@ -139,7 +139,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
             compile_cfg.time_limit = 10000;
             compile_cfg.mem_limit = 512 * 1024;
             compile_cfg.output_path = "/compile.log";
-            std::cerr << "task_info.lang: " << task_info.lang << std::endl;
+            // std::cerr << "task_info.lang: " << task_info.lang << std::endl;
             if (task_info.lang == "C++")
             {
                 compile_cfg.code_path = "/usr/bin/g++";
@@ -150,7 +150,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                 compile_cfg.code_path = "/usr/bin/javac";
                 compile_cfg.args = {"-d", ".", "/Main.java"};
             }
-            std::cerr << "Ready to in container!!" << std::endl;
+            // std::cerr << "Ready to in container!!" << std::endl;
 
             Container compile_container(compile_cfg);
             auto proc = compile_container.start();
@@ -167,7 +167,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
                     compile_msg = "Compilation Failed Exit Code " + std::to_string(compile_res.exit_code);
             }
         }
-        std::cerr << "compile_success: " << compile_success << std::endl;
+        // std::cerr << "compile_success: " << compile_success << std::endl;
         if (!compile_success)
         {
             result.status = "Compile Error";
@@ -288,7 +288,7 @@ void ch_proc_work(const std::string &redis_host, const int &redis_port)
             }
         }
         callback_final_res(result);
-        // overlay.remove_workspace();
+        overlay.remove_workspace();
     }
 }
 

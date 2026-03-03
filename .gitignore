@@ -31,3 +31,4 @@ frontend/npm-debug.log*
 frontend/yarn-error.log*
 
 build
+submit.lua
