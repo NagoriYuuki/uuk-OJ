@@ -7,11 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PkgConfig REQUIRED)
 # "libcrypto++" 是 Ubuntu 包管理器中的名称
 pkg_check_modules(CRYPTOPP REQUIRED libcrypto++)
+pkg_check_modules(RDKAFKA REQUIRED rdkafka)
 
 find_path(REDIS_PLUS_PLUS_INCLUDE_DIR sw/redis++/redis++.h)
 find_library(REDIS_PLUS_PLUS_LIBRARY redis++)
 find_library(HIREDIS_LIBRARY hiredis)
 find_package(Threads REQUIRED)
+find_package(Boost REQUIRED)
 
 # 指定源码（显式列出，避免把测试/临时 cpp 误编进主程序）
 add_executable(uukOJ
@@ -46,10 +48,13 @@ set(UUKOJ_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/entities
     ${CMAKE_CURRENT_SOURCE_DIR}/mapper
     ${CMAKE_CURRENT_SOURCE_DIR}/Services
+    ${CMAKE_SOURCE_DIR}/include/modern-cpp-kafka/include
     # ${CMAKE_CURRENT_SOURCE_DIR}/src/uuk-judger/include
 )
 
-target_include_directories(uukOJ PRIVATE ${UUKOJ_INCLUDE_DIRS})
+target_include_directories(uukOJ PRIVATE ${UUKOJ_INCLUDE_DIRS}
+    ${RDKAFKA_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS})
 target_include_directories(crud_smoke PRIVATE ${UUKOJ_INCLUDE_DIRS})
 target_include_directories(crudtest PRIVATE ${UUKOJ_INCLUDE_DIRS})
 target_include_directories(api_checker PRIVATE ${UUKOJ_INCLUDE_DIRS})
@@ -57,10 +62,12 @@ target_include_directories(api_checker PRIVATE ${UUKOJ_INCLUDE_DIRS})
 
 
 # 链接库
-target_link_directories(uukOJ PRIVATE ${MARIADB_CPP_LIBRARY_DIR})
+target_link_directories(uukOJ PRIVATE ${MARIADB_CPP_LIBRARY_DIR}
+)
 target_link_libraries(uukOJ PRIVATE mariadbcpp ${CRYPTOPP_LIBRARIES}
     ${REDIS_PLUS_PLUS_LIBRARY}
-    ${HIREDIS_LIBRARY})
+    ${HIREDIS_LIBRARY}
+    ${RDKAFKA_LIBRARIES})
 
 target_link_directories(crud_smoke PRIVATE ${MARIADB_CPP_LIBRARY_DIR})
 target_link_libraries(crud_smoke PRIVATE mariadbcpp)
@@ -82,6 +89,9 @@ target_include_directories(uuk_judger PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/uuk-judger/src
     ${REDIS_PLUS_PLUS_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/modern-cpp-kafka/include # Kafka 头文件
+    ${RDKAFKA_INCLUDE_DIRS} # librdkafka 头文件
+    ${Boost_INCLUDE_DIRS} # Boost 头文件
 )
 
 # 链接评测机需要的库: redis++, hiredis, pthread
@@ -89,6 +99,7 @@ target_link_libraries(uuk_judger
     PRIVATE
     ${REDIS_PLUS_PLUS_LIBRARY}
     ${HIREDIS_LIBRARY}
+    ${RDKAFKA_LIBRARIES}
     Threads::Threads
     seccomp
 )

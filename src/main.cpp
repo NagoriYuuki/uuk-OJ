@@ -5,6 +5,7 @@
 #include "db.hpp"
 #include "zipcheck.hpp"
 #include "db_pool.hpp"
+#include "kafka_producer.hpp"
 
 #include "user_mapper.hpp"
 
@@ -26,7 +27,7 @@ signed main(void)
 {
     crow::App<AuthMiddleware> app;
     auto problem_redis_ptr = std::make_shared<sw::redis::Redis>("tcp://127.0.0.1:6379");
-
+    KafkaProducer::instance().init("localhost:9092");
     // auto problem_redis_ptr_ptr = nullptr;
     CROW_ROUTE(app, "/")
     ([]()
@@ -606,7 +607,28 @@ signed main(void)
                     return crow::response(404, res);
                 }
 
-                send_judge_request(submission, problem.value());
+                // send_judge_request(submission, problem.value());
+
+                //=============================
+                crow::json::wvalue kafka_msg;
+                kafka_msg["submission_id"] = submission.id;
+                kafka_msg["problem_id"] = submission.problem_id;
+                kafka_msg["user_id"] = submission.user_id;
+                kafka_msg["language"] = submission.language;
+                kafka_msg["code"] = submission.code;
+                kafka_msg["time_limit"] = problem.value().time_limit;
+                kafka_msg["mem_limit"] = problem.value().mem_limit;
+
+                try
+                {
+                    KafkaProducer::instance().push("submission_queue", kafka_msg.dump());
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << "Failed to send Kafka message: " << e.what() << std::endl;
+                }
+
+                // =============================
 
                 res["code"] = 200;
                 res["new_id"] = new_id.value();
