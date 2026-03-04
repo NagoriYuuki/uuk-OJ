@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <optional>
 #include <iostream>
+#include <sys/mount.h>
 
 #include "../entities/task_info.hpp"
 
@@ -91,7 +92,10 @@ public:
     void remove_workspace()
     {
         std::error_code ec;
+        umount((base_path_ + "/merge").c_str());
         std::filesystem::remove_all(base_path_, ec);
+        if (ec)
+            std::cerr << "Failed to remove workspace for id: " << task_info_.submission_id << "\nPath: " << base_path_ << "\nError: " << ec.message() << std::endl;
     }
 
     std::string get_upper_path() const
