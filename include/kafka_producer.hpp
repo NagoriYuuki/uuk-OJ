@@ -13,10 +13,13 @@ public:
 
     void init(const std::string &brokers)
     {
-        kafka::Properties props({{"bootstrap.servers", brokers}});
-        props.put("acks", "all");
-        props.put("retries", "3");
-        props.put("enable.idempotence", "true");
+        kafka::Properties props({{"bootstrap.servers", {brokers}},
+        {"acks", {"all"}},
+        {"retries", {"3"}},
+        {"enable.idempotence", {"true"}}});
+        // props.put("acks", "all");
+        // props.put("retries", "3");
+        // props.put("enable.idempotence", "true");
         producer = std::make_unique<kafka::clients::producer::KafkaProducer>(props);
         if (!producer)
         {
