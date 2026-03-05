@@ -9,6 +9,8 @@
 #include "container.hpp"
 #include <string>
 
+extern std::atomic<bool> judger_running;
+
 class Worker
 {
 public:
@@ -25,9 +27,10 @@ public:
         std::cerr << "[Worker] Started worker, waiting for msg Nya~" << std::endl;
         try
         {
-            while (true)
+            while (judger_running)
             {
                 auto records = consumer.poll(std::chrono::milliseconds(100));
+                // std::cerr << "[Worker] get task" << std::endl;
                 if (records.empty())
                     continue;
                 for (const auto &i : records)
@@ -36,8 +39,10 @@ public:
                         continue;
                     TaskInfo task_info = parse_task(i.value().toString());
                     IPCMessage req;
+                    std::memset(&req, 0, sizeof(req));
                     req.type = IPCType::REQ_DATA;
                     req.info.problem_id = task_info.problem_id;
+                    std::cerr << "[Worker] write to daeon" << req.info.problem_id << std::endl;
                     write(ipc_fd, &req, sizeof(req));
                     IPCMessage rep;
                     read(ipc_fd, &rep, sizeof(rep));
@@ -232,10 +237,13 @@ public:
                     callback_final_res(result);
                     overlay.remove_workspace();
                 }
+                consumer.commitSync();
             }
+            consumer.close();
         }
         catch (const std::exception &e)
         {
+            consumer.close();
             std::cerr << "Worker encountered an error: " << e.what() << std::endl;
         }
     }
@@ -258,9 +266,10 @@ private:
     void report_compiling(const i64 &sub_id)
     {
         IPCMessage rep;
+        std::memset(&rep, 0, sizeof(rep));
         rep.type = IPCType::REP_STATUS;
         rep.info.submission_id = sub_id;
-        rep.info.set_status("Compiling...");
+        rep.info.set_status("Compiling");
         write(ipc_fd, &rep, sizeof(rep));
         IPCMessage ack;
         read(ipc_fd, &ack, sizeof(ack));
@@ -273,7 +282,7 @@ private:
         IPCMessage rep;
         rep.type = IPCType::REP_STATUS;
         rep.info.submission_id = sub_id;
-        rep.info.set_status("Running on Test# " + std::to_string(tc_id));
+        rep.info.set_status("Running");
         if (tc_total > 0)
         {
             std::string detail = "Running on Test# " + std::to_string(tc_id) + "/" + std::to_string(tc_total);

@@ -12,13 +12,6 @@ enum class IPCType : int
     NYA_PONG = 4,
 };
 
-struct IPCMessage
-{
-    using i64 = long long;
-    IPCType type;
-    JudgeResult info;
-};
-
 struct JudgeResult
 {
     using i64 = long long;
@@ -41,3 +34,12 @@ struct JudgeResult
         detail[sizeof(detail) - 1] = '\0';
     }
 };
+
+struct IPCMessage
+{
+    using i64 = long long;
+    IPCType type;
+    JudgeResult info;
+};
+
+

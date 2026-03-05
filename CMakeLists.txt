@@ -21,7 +21,9 @@ add_executable(uukOJ
 )
 
 # 评测机
-add_executable(uuk_judger src/uuk-judger/src/main.cpp)
+add_executable(uuk_judger 
+    src/uuk-judger/src/main.cpp
+    src/uuk-judger/include/daemon_wrapper.cpp)
 
 # CRUD 冒烟测试（最简单验证 Mapper 是否能正常工作）
 add_executable(crud_smoke

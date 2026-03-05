@@ -23,6 +23,9 @@
 
 using i64 = long long;
 
+constexpr int LOCK_MAXN = 32;
+std::mutex zip_locks[LOCK_MAXN];
+
 signed main(void)
 {
     crow::App<AuthMiddleware> app;
@@ -846,6 +849,47 @@ signed main(void)
                 for (const auto &i : ac)
                     res["ac_problems"][idx++] = i;
                 return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/internal/data/<int>")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req, int problem_id)
+            {
+                std::string auth_header = req.get_header_value("Authorization");
+                if (auth_header != "is_Neko_Girl")
+                    return crow::response(403, "Forbidden Nya~");
+
+                std::string data_path = "data/problems/p" + std::to_string(problem_id);
+                std::string zip_path = data_path + "/data.zip";
+                if (!std::filesystem::exists(zip_path))
+                {
+                    int lock_id = problem_id % LOCK_MAXN;
+                    std::lock_guard<std::mutex> lock(zip_locks[lock_id]);
+                    if (!std::filesystem::exists(zip_path))
+                    {
+
+                        std::string cmd = "cd " + data_path + " && zip -q -r data.zip . -i \"*.in\" \"*.out\"";
+
+                        int ret = system(cmd.c_str());
+                        if (ret != 0)
+                        {
+                            std::cerr << "[Error] Failed to create zip for problem " << problem_id << std::endl;
+                            return crow::response(500, "Failed to package testcases Nya~");
+                        }
+                    }
+                }
+                std::ifstream fin(zip_path, std::ios::binary);
+                if (!fin)
+                {
+                    std::cerr << "[Error] Zip file not found for problem " << problem_id << std::endl;
+                    return crow::response(404, "Testcase zip not found Nya~");
+                }
+                std::stringstream buffer;
+                buffer << fin.rdbuf();
+                crow::response res(buffer.str());
+                res.add_header("Content-Type", "application/zip");
+                res.add_header("Content-Disposition", "attachment; filename=\"data.zip\"");
+                return res;
             });
 
     app.port(18080)
