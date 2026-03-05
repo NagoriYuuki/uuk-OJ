@@ -5,6 +5,7 @@
 #include "db.hpp"
 #include "zipcheck.hpp"
 #include "db_pool.hpp"
+#include "kafka_producer.hpp"
 
 #include "user_mapper.hpp"
 
@@ -22,11 +23,14 @@
 
 using i64 = long long;
 
+constexpr int LOCK_MAXN = 32;
+std::mutex zip_locks[LOCK_MAXN];
+
 signed main(void)
 {
     crow::App<AuthMiddleware> app;
     auto problem_redis_ptr = std::make_shared<sw::redis::Redis>("tcp://127.0.0.1:6379");
-
+    KafkaProducer::instance().init("localhost:9092");
     // auto problem_redis_ptr_ptr = nullptr;
     CROW_ROUTE(app, "/")
     ([]()
@@ -606,7 +610,28 @@ signed main(void)
                     return crow::response(404, res);
                 }
 
-                send_judge_request(submission, problem.value());
+                // send_judge_request(submission, problem.value());
+
+                //=============================
+                crow::json::wvalue kafka_msg;
+                kafka_msg["submission_id"] = submission.id;
+                kafka_msg["problem_id"] = submission.problem_id;
+                kafka_msg["user_id"] = submission.user_id;
+                kafka_msg["language"] = submission.language;
+                kafka_msg["code"] = submission.code;
+                kafka_msg["time_limit"] = problem.value().time_limit;
+                kafka_msg["mem_limit"] = problem.value().mem_limit;
+
+                try
+                {
+                    KafkaProducer::instance().push("submission_queue", kafka_msg.dump());
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << "Failed to send Kafka message: " << e.what() << std::endl;
+                }
+
+                // =============================
 
                 res["code"] = 200;
                 res["new_id"] = new_id.value();
@@ -824,6 +849,47 @@ signed main(void)
                 for (const auto &i : ac)
                     res["ac_problems"][idx++] = i;
                 return crow::response(200, res);
+            });
+
+    CROW_ROUTE(app, "/api/internal/data/<int>")
+        .methods(crow::HTTPMethod::GET)(
+            [&](const crow::request &req, int problem_id)
+            {
+                std::string auth_header = req.get_header_value("Authorization");
+                if (auth_header != "is_Neko_Girl")
+                    return crow::response(403, "Forbidden Nya~");
+
+                std::string data_path = "data/problems/p" + std::to_string(problem_id);
+                std::string zip_path = data_path + "/data.zip";
+                if (!std::filesystem::exists(zip_path))
+                {
+                    int lock_id = problem_id % LOCK_MAXN;
+                    std::lock_guard<std::mutex> lock(zip_locks[lock_id]);
+                    if (!std::filesystem::exists(zip_path))
+                    {
+
+                        std::string cmd = "cd " + data_path + " && zip -q -r data.zip . -i \"*.in\" \"*.out\"";
+
+                        int ret = system(cmd.c_str());
+                        if (ret != 0)
+                        {
+                            std::cerr << "[Error] Failed to create zip for problem " << problem_id << std::endl;
+                            return crow::response(500, "Failed to package testcases Nya~");
+                        }
+                    }
+                }
+                std::ifstream fin(zip_path, std::ios::binary);
+                if (!fin)
+                {
+                    std::cerr << "[Error] Zip file not found for problem " << problem_id << std::endl;
+                    return crow::response(404, "Testcase zip not found Nya~");
+                }
+                std::stringstream buffer;
+                buffer << fin.rdbuf();
+                crow::response res(buffer.str());
+                res.add_header("Content-Type", "application/zip");
+                res.add_header("Content-Disposition", "attachment; filename=\"data.zip\"");
+                return res;
             });
 
     app.port(18080)

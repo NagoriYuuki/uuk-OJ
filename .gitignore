@@ -4,6 +4,7 @@ data/problems/
 .cph
 uuk_oj.sql
 src/uuk-judger/rootfs
+src/uuk-judger/data
 workspace
 
 bin/
@@ -32,3 +33,4 @@ frontend/yarn-error.log*
 
 build
 submit.lua
+todo.md
