@@ -34,3 +34,6 @@ frontend/yarn-error.log*
 build
 submit.lua
 todo.md
+
+src/uuk-judger/rootfs.tar.gz
+*.zip

@@ -1,0 +1,71 @@
+FROM ubuntu:22.04 AS builder
+
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+
+RUN apt-get update && apt-get install -y \
+    build-essential cmake git wget pkg-config \
+    libmariadb-dev libssl-dev libhiredis-dev \
+    libcrypto++-dev libseccomp-dev \
+    libboost-all-dev \
+    libasio-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone -b v2.3.0 https://github.com/confluentinc/librdkafka.git /tmp/librdkafka && \
+    cd /tmp/librdkafka && \
+    ./configure --prefix=/usr/local && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /tmp/librdkafka
+
+RUN wget https://github.com/CrowCpp/Crow/releases/latest/download/crow_all.h -O /usr/local/include/crow.h
+
+RUN git clone https://github.com/sewenew/redis-plus-plus.git /tmp/redispp && \
+    cd /tmp/redispp && mkdir build && cd build && \
+    cmake .. -DREDIS_PLUS_PLUS_CXX_STANDARD=17 && \
+    make -j$(nproc) && make install && \
+    rm -rf /tmp/redispp
+
+RUN git clone https://github.com/mariadb-corporation/mariadb-connector-cpp.git /tmp/mcpp && \
+    cd /tmp/mcpp && mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCONC_WITH_UNIT_TESTS=OFF && \
+    make -j$(nproc) && make install && \
+    rm -rf /tmp/mcpp
+
+WORKDIR /src
+COPY . .
+
+RUN mkdir build && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=Release .. \
+    && cmake --build . --target uuk_judger -- -j$(nproc)
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list
+
+RUN apt-get update && apt-get install -y \
+    libseccomp2 librdkafka1 libhiredis0.14 libmariadb3 \
+    libcrypto++8 unzip curl \
+    python3 openjdk-17-jdk-headless \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /src/build/uuk_judger .
+
+COPY --from=builder /usr/local/lib/libredis++.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/mariadb/libmariadbcpp.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/librdkafka* /usr/local/lib/
+RUN ldconfig
+
+COPY src/uuk-judger/rootfs.tar.gz /app/
+RUN mkdir -p /app/rootfs && tar -xzf rootfs.tar.gz -C /app/rootfs && rm rootfs.tar.gz
+
+RUN mkdir -p workspace data
+
+CMD ["./uuk_judger"]

@@ -1,5 +1,4 @@
 #include <crow.h>
-#include <bits/stdc++.h>
 #include <mariadb/conncpp.hpp>
 
 #include "db.hpp"
@@ -26,11 +25,23 @@ using i64 = long long;
 constexpr int LOCK_MAXN = 32;
 std::mutex zip_locks[LOCK_MAXN];
 
+std::string get_env(const std::string &key, const std::string &default_value)
+{
+    const char *val = std::getenv(key.c_str());
+    return val ? std::string(val) : default_value;
+}
+
 signed main(void)
 {
+    const std::string kafka_brokers = get_env("KAFKA_BROKERS", "127.0.0.1:9092");
+    const std::string redis_host = get_env("REDIS_HOST", "127.0.0.1");
+    const std::string redis_port = get_env("REDIS_PORT", "6379");
+
+    std::string redis_str = "tcp://" + redis_host + ":" + redis_port;
+
     crow::App<AuthMiddleware> app;
-    auto problem_redis_ptr = std::make_shared<sw::redis::Redis>("tcp://127.0.0.1:6379");
-    KafkaProducer::instance().init("localhost:9092");
+    auto problem_redis_ptr = std::make_shared<sw::redis::Redis>(redis_str);
+    KafkaProducer::instance().init(kafka_brokers);
     // auto problem_redis_ptr_ptr = nullptr;
     CROW_ROUTE(app, "/")
     ([]()

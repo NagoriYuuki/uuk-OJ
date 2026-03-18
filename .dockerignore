@@ -1,0 +1,9 @@
+.git
+.vscode
+build
+workspace
+data
+frontend/node_modules
+src/uuk-judger/rootfs
+*.zip
+*.log

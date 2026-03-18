@@ -11,12 +11,42 @@
 class OverlayFS
 {
 private:
-    const std::string ROOTFS_PATH_ = "/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/rootfs";
+    // const std::string ROOTFS_PATH_ = "/home/yuuuki/MyProject/vscode/cpp/uuk-OJ/src/uuk-judger/rootfs";
+    std::string ROOTFS_PATH_;
     std::string base_path_;
     std::string upper_dir_;
     std::string work_dir_;
     std::string merge_dir_;
     TaskInfo task_info_;
+
+    std::string resolve_rootfs()
+    {
+        std::vector<std::string> path_vec;
+
+        if (const char *env_rootfs = std::getenv("JUDGER_ROOTFS"); env_rootfs && *env_rootfs)
+            path_vec.emplace_back(env_rootfs);
+
+        path_vec.emplace_back("/app/rootfs");
+
+        path_vec.emplace_back(std::filesystem::absolute("src/uuk-judger/rootfs").string());
+
+        for (const auto &i : path_vec)
+        {
+            std::error_code ec;
+            if (std::filesystem::exists(i, ec) && std::filesystem::is_directory(i, ec))
+            {
+                std::cerr << "[OverlayFS] Using rootfs: " << i << std::endl;
+                return i;
+            }
+        }
+
+        std::ostringstream oss;
+        oss << "[OverlayFS] rootfs not found. Tried:";
+        for (const auto &i : path_vec)
+            oss << "\n  - " << i;
+        throw std::runtime_error(oss.str());
+    }
+
     bool create_dir(const std::string &path, const std::string &name)
     {
         std::error_code ec;
@@ -105,6 +135,14 @@ public:
 
     OverlayFS(const TaskInfo &task_info) : task_info_(task_info)
     {
+        // const char *env_rootfs = std::getenv("JUDGER_ROOTFS");
+        // if (env_rootfs)
+        //     ROOTFS_PATH_ = std::string(env_rootfs);
+        // else
+        //     ROOTFS_PATH_ = "/app/rootfs";
+
+        ROOTFS_PATH_ = resolve_rootfs();
+
         base_path_ = std::filesystem::absolute("workspace/task" + std::to_string(task_info_.submission_id)).string();
         upper_dir_ = base_path_ + "/upper";
         work_dir_ = base_path_ + "/work";

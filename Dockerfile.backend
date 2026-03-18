@@ -1,0 +1,79 @@
+FROM ubuntu:22.04 AS builder
+
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+
+
+RUN apt-get update && apt-get install -y \
+    build-essential cmake git wget pkg-config zip \
+    libmariadb-dev libssl-dev libhiredis-dev \
+    libcrypto++-dev libseccomp-dev libasio-dev \
+    libboost-all-dev \
+    libasio-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone -b v2.3.0 https://github.com/confluentinc/librdkafka.git /tmp/librdkafka && \
+    cd /tmp/librdkafka && \
+    ./configure --prefix=/usr/local && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /tmp/librdkafka
+
+
+RUN wget https://github.com/CrowCpp/Crow/releases/latest/download/crow_all.h -O /usr/local/include/crow.h
+
+RUN git clone https://github.com/sewenew/redis-plus-plus.git /tmp/redispp && \
+    cd /tmp/redispp && mkdir build && cd build && \
+    cmake .. -DREDIS_PLUS_PLUS_CXX_STANDARD=17 && \
+    make -j$(nproc) && make install && \
+    rm -rf /tmp/redispp
+
+RUN git clone https://github.com/mariadb-corporation/mariadb-connector-cpp.git /tmp/mcpp && \
+    cd /tmp/mcpp && mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCONC_WITH_UNIT_TESTS=OFF && \
+    make -j$(nproc) && make install && \
+    rm -rf /tmp/mcpp
+
+WORKDIR /src
+COPY . .
+RUN mkdir build && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=Release .. \
+    && make uukOJ -j$(nproc)
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.aliyun.com@g' /etc/apt/sources.list
+
+RUN apt-get update && apt-get install -y \
+    libmariadb3 \
+    libssl3 \
+    librdkafka1 \
+    libhiredis0.14 \
+    libcrypto++8 \
+    libseccomp2 \
+    zip \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /src/build/uukOJ .
+
+COPY --from=builder /usr/local/lib/libredis++.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/mariadb/libmariadbcpp.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/librdkafka* /usr/local/lib/
+RUN ldconfig
+
+COPY frontend/dist ./frontend/dist
+
+RUN mkdir -p data/problems
+
+EXPOSE 18080
+
+CMD ["./uukOJ"]

@@ -60,6 +60,13 @@ public:
     }
 
 private:
+    const std::string db_host = get_env("DB_HOST", "127.0.0.1");
+    const std::string db_port = get_env("DB_PORT", "3307");
+    const std::string db_user = get_env("DB_USER", "uuk");
+    const std::string db_pass = get_env("DB_PASS", "qweasd");
+    const std::string db_name = get_env("DB_NAME", "uuk_oj");
+    std::string db_host_str = db_host + ":" + db_port;
+
     sql::Driver *driver;
     std::queue<std::shared_ptr<sql::Connection>> pool;
     std::mutex mtx;
@@ -67,10 +74,17 @@ private:
     constexpr static int min_size = 10;
     constexpr static int max_size = 50;
     int cur_size;
-    sql::Properties props{{"hostName", "localhost:3307"},
-                          {"userName", "uuk"},
-                          {"password", "qweasd"},
-                          {"schema", "uuk_oj"}};
+    sql::Properties props{{"hostName", db_host_str},
+                          {"userName", db_user},
+                          {"password", db_pass},
+                          {"schema", db_name},
+                          {"OPT_RECONNECT", "true"}};
+
+    std::string get_env(const std::string &key, const std::string &default_value)
+    {
+        const char *val = std::getenv(key.c_str());
+        return val ? std::string(val) : default_value;
+    }
 
     DBPool(int min = min_size, int max = max_size)
     {

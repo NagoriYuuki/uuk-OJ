@@ -12,13 +12,20 @@ void signal_handler(int signum)
     judger_running = false;
 }
 
+std::string get_env(const std::string &key, const std::string &default_value)
+{
+    const char *val = std::getenv(key.c_str());
+    return val ? std::string(val) : default_value;
+}
+
 signed main(void)
 {
+
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
-    const std::string kafka_brokers = "127.0.0.1:9092";
-    const std::string oj_host = "127.0.0.1";
-    constexpr int oj_port = 18080;
+    const std::string kafka_brokers = get_env("KAFKA_BROKERS", "127.0.0.1:9092");
+    const std::string oj_host = get_env("OJ_HOST", "127.0.0.1");
+    const int oj_port = std::stoi(get_env("OJ_PORT", "18080"));
 
     int worker_count = std::max(4, static_cast<int>(std::thread::hardware_concurrency()));
     try

@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mariadb:10.6
+    container_name: oj_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: uuk_oj
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+    networks:
+      - oj_net
+
+  redis:
+    image: redis:7.0
+    container_name: oj_redis
+    restart: always
+    networks:
+      - oj_net
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: oj_kafka
+    restart: always
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - oj_net
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: oj_backend
+    restart: always
+    ports:
+      - "18080:18080"
+    environment:
+      - DB_HOST=mysql
+      - REDIS_HOST=redis
+      - KAFKA_BROKERS=kafka:9092
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - mysql
+      - redis
+      - kafka
+    networks:
+      - oj_net
+
+  judger:
+    build:
+      context: .
+      dockerfile: Dockerfile.judger
+    container_name: oj_judger
+    restart: always
+    privileged: true
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+      - OJ_HOST=backend
+      - OJ_PORT=18080
+      - JUDGER_ROOTFS=/app/rootfs
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - backend
+      - kafka
+    networks:
+      - oj_net
+
+networks:
+  oj_net:
+
+volumes:
+  mysql_data:
