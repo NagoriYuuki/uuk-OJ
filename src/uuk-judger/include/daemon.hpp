@@ -202,7 +202,6 @@ private:
                     data_waiting[problem_id].push_back(fd);
                     download_data(problem_id);
                 }
-                break;
             }
             else if (msg.type == IPCType::REP_STATUS)
             {
@@ -211,7 +210,6 @@ private:
                 std::memset(&rep, 0, sizeof(rep));
                 rep.type = IPCType::NYA_PONG;
                 write(fd, &rep, sizeof(rep));
-                break;
             }
         }
     }
