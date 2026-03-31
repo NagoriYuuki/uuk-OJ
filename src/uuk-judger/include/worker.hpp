@@ -6,6 +6,8 @@
 #include "../include/ans_checker.hpp"
 #include "../entities/task_info.hpp"
 #include "../include/overlayFS.hpp"
+#include "../include/redis_lock.hpp"
+#include "../include/redis_connect.hpp"
 #include "container.hpp"
 #include <string>
 
@@ -21,7 +23,8 @@ public:
     {
         kafka::Properties props({{"bootstrap.servers", {brokers}},
                                  {"group.id", {"worker_group"}},
-                                 {"enable.auto.commit", {"false"}}});
+                                 {"enable.auto.commit", {"false"}},
+                                 {"log.connection.close", {"false"}}});
         kafka::clients::consumer::KafkaConsumer consumer(props);
         consumer.subscribe({"submission_queue"});
         std::cerr << "[Worker] Started worker, waiting for msg Nya~" << std::endl;
@@ -38,6 +41,14 @@ public:
                     if (!i.value().size())
                         continue;
                     TaskInfo task_info = parse_task(i.value().toString());
+                    const std::string lock_key = "worker_lock:" + std::to_string(task_info.submission_id);
+                    RedisLock task_lock(RedisConnect::get_instance().client(), lock_key);
+                    if (!task_lock.try_lock())
+                    {
+                        std::cerr << "[Worker]: Submission " << task_info.submission_id << " is judging by other worker." << std::endl;
+                        continue;
+                    }
+
                     IPCMessage req;
                     std::memset(&req, 0, sizeof(req));
                     req.type = IPCType::REQ_DATA;
@@ -249,6 +260,9 @@ public:
     }
 
 private:
+    int ipc_fd;
+    std::string brokers;
+
     TaskInfo parse_task(const std::string &task_str)
     {
         using i64 = long long;
@@ -316,7 +330,4 @@ private:
         fin.close();
         fout.close();
     }
-
-    int ipc_fd;
-    std::string brokers;
 };
